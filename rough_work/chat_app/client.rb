@@ -2,7 +2,6 @@
 
 require_relative 'input_parser'
 
-
 # Represents all Clients connected to the chat lobby. I use a crude textual
 # format to multiplex input onto stdin:
 # "1 blah blah blah 2 yadda yadda yadda ... <NUMBER> <TEXT>"
