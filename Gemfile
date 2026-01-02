@@ -6,3 +6,9 @@ gem 'tty-box'
 gem 'tty-cursor'
 gem 'tty-reader'
 gem 'tty-screen'
+
+group :development, :test do
+  gem 'minitest'
+  gem 'rubocop'
+  gem 'ruby-lsp'
+end
