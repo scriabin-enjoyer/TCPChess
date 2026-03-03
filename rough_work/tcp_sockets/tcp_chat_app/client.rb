@@ -1,30 +1,23 @@
 # frozen_string_literal: true
 
 module TCPChatApp
-  # Clients can:
-  # - register with the server
-  # - send a broadcast message to the server
-  # - request a list of active clients
-  # - send a message to a specific client
-  # Protocol: Basic TLV
-  #   - Header: 2 bytes. First byte is a MSG_TYPE defined above. Second is a
-  #   Length -- ranges from 0 to 255
-  #   - Payload:
   class Client
-    # seconds
-    TIMEOUT = 5
+    REMOTE_PORT = 2211
+    REMOTE_HOST = 'localhost'
 
-    def initialize(id)
-      @id = id
-      @socket = Socket.new :INET, :STREAM
-      @remote_addr = Socket.pack_sockaddr_in(REMOTE_PORT, 'localhost')
+    def initialize
+      @id = Time.now.hash.to_s(16)[0..6]
+      @ui = UI.new(@id)
+      @ui.welcome
+      # Just let it fail for now if the connect is unsuccessful
+      @server = TCPSocket.new(REMOTE_HOST, REMOTE_PORT, connect_timeout: 60)
+      @ui.puts_connect_success
     end
 
-    def connect_to_server
-      conn_status = @socket.connect_nonblock(@remote_addr, exception: false)
-      IO.select(nil, [@socket], nil, TIMEOUT) if conn_status == :wait_writable
+    def loop
+      # send message to server indicating we are looking to get matched with a peer
+      # print "connected to peer" message if successfully matched, print server error otherwise
 
-      conn = @socket.connect_nonblock(@remote_addr, exception: false)
     end
   end
 end
