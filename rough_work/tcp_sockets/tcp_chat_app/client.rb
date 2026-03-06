@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'socket'
+require_relative 'ui'
+require_relative 'socket_errors'
+
 module TCPChatApp
   class Client
     REMOTE_PORT = 2211
@@ -15,10 +19,8 @@ module TCPChatApp
     end
 
     def loop
-      # send message to server indicating we are looking to get matched with a peer
-      # print "connected to peer" message if successfully matched, print server error otherwise
-
     end
   end
 end
 
+# TCPChatApp::Client.new
