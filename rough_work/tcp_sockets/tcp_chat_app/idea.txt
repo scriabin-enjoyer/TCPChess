@@ -1,0 +1,39 @@
+Okay so I have now finished all 3 of Jesse Storimer's ebooks, and I am now
+well prepared to implement a basic chatapp over TCP Sockets in Ruby. My chess
+project is going to implement a chat app alongside the main chess interface, so
+it is definitely good practice to implement a chat app to solidify and practice
+with all the new knowledge in my brain.
+
+Here is the idea for this chat app:
+- Maintains a queue: when the queue contains at least 2 people in it, the queue
+will put the 2 front-most clients into a ChatRoom, where in the 2 people are
+able to chat with eachother
+- Architecture:
+        - TCP Sockets
+        - Event Driven
+        - Central Server Authority:
+                - all data is relayed through the server
+
+TODO:
+
+Remember: Make it SIMPLE SIMPLE SIMPLE
+
+- Protocol:
+        - [x] define message formats
+        - [x] define message types
+        - [] Message Parsing
+
+- Client:
+        - [x] connect to server on startup
+        - [x] print welcome messages
+        - [] implement input handlers
+        - [] implement quit control
+        - [] implement shutdown and close
+        - [] implement message sending/receiving
+
+- Server:
+        - [] Figure out the architecture
+        - [] Queue managing
+        - [] ChatRoom
+        - [] Message Relaying
+        - [] Event-Driven Server Loop
