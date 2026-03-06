@@ -21,7 +21,9 @@ Remember: Make it SIMPLE SIMPLE SIMPLE
 - Protocol:
         - [x] define message formats
         - [x] define message types
-        - [] Message Parsing
+        - [] Message Generators
+        - [] Message Serializer
+        - [] Message Parser
 
 - Client:
         - [x] connect to server on startup
