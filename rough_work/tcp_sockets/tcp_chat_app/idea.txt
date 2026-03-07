@@ -11,8 +11,7 @@ able to chat with eachother
 - Architecture:
         - TCP Sockets
         - Event Driven
-        - Central Server Authority:
-                - all data is relayed through the server
+        - Central Server Authority: all data is relayed through the server
 
 TODO:
 
@@ -22,6 +21,7 @@ Remember: Make it SIMPLE SIMPLE SIMPLE
         - [x] define message formats
         - [x] define message types
         - [] Message Generators
+                - [] Handle message boundaries (esp. for variable-length)
         - [] Message Serializer
         - [] Message Parser
 
