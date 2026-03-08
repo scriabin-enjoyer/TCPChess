@@ -12,7 +12,9 @@ module TCPChatApp
     LOG_FILE = $stdout
 
     def initialize
-      @waiting_queue = []
+      @intake_queue = IntakeQueue.new
+      @clients = Array.new
+      # Expose socket creation process just to be explicit
       @listening_socket = Socket.new(:INET, :STREAM).then do |sock|
         addr = Socket.pack_sockaddr_in(SERVER_PORT, SERVER_HOST)
         sock.bind addr
@@ -22,34 +24,70 @@ module TCPChatApp
       LOG_FILE.puts "{#{Time.now.utc}}: Server listening on #{SERVER_PORT} on all interfaces"
     end
 
+    # NOTE: WIP
     def run
       loop do
-        # 1. Match people in the waiting queue, put them into a room
-        # 2. select() for sockets
-        # 3. Handle new connections
-        # 4. Handle readable sockets
-        # 5. Handle writable sockets
-        read_ready, write_ready= IO.select([@listening_socket] + @peer_map.keys, @peer_map.keys)
-
-        read_ready.each do |sock|
-          if sock == @listening_socket
-            # When client connects, they are put into a "waiting room" queue
-            # when there are >= 2 people in the queue, will start to match them
-          else
-            # read
-          end
-        end
+        # before calling select, implement monitor_for_reading? and
+        # monitor_for_writing? on my Connection class, then generate the
+        # read_sockets, write_sockets for IO.select. The below is just here
+        # temporarily
+        read_ready, = IO.select([@listening_socket] + @clients, @clients)
+        read_ready.each { |conn| handle_readables(conn) }
       end
+    end
+
+    # NOTE: WIP
+    def handle_readables(connection)
+      if connection == @listening_socket
+        # In the very unlikely case that the listening_socket starts filling up
+        # its backlog, we should pop the queue until its empty
+        while (new_client = connection.accept_nonblock(exception: false)) != :wait_readable
+          @intake_queue.process new_client
+        end
+      else
+        handle_client_event(connection)
+      end
+    end
+
+    # NOTE: WIP
+    def handle_client_event(connection)
+      raise NotImplementedError
     end
   end
 
-end
-
-module TCPChatApp
   # Wraps all Socket logic, connection handling, etc.
+  # Input: Maintains its own personal buffer to receive data from the Transport layer
+  # Output: Provides methods to send data
+  # Connection Lifecycle: Startup, shutdown, etc.
+  # Protocol Bridge: Should handle streaming data from transport layer and also
+  # message boundaries for partial reads
   class Connection
-    def initialize
+    def initialize(socket)
+      raise NotImplementedError
+    end
 
+    def to_io
+      raise NotImplementedError
+    end
+  end
+
+  # Processes newly accepted client sockets and matches them with another
+  # waiting client on a FIFO basis. 
+  class IntakeQueue
+    def initialize
+      @queue = []
+    end
+
+    def process(conn)
+      @queue << conn
+    end
+
+    def match
+      raise NotImplementedError
+    end
+
+    def ready_to_match
+      raise NotImplementedError
     end
   end
 end
