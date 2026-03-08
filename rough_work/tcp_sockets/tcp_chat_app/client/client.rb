@@ -9,18 +9,23 @@ module TCPChatApp
     REMOTE_PORT = 2211
     REMOTE_HOST = 'localhost'
 
-    def initialize
-      @id = Time.now.hash.to_s(16)[0..6]
-      @ui = UI.new(@id)
+    # main entry point
+    def self.connect(host = REMOTE_HOST, port = REMOTE_PORT)
+      client = new(host, port)
+    end
+
+    def initialize(host, port)
+      @host = host
+      @port = port
+      @ui = UI.new
       @ui.welcome
       # Just let it fail for now if the connect is unsuccessful
-      @server = TCPSocket.new(REMOTE_HOST, REMOTE_PORT, connect_timeout: 60)
+      @server = TCPSocket.new(host, port, connect_timeout: 60)
       @ui.puts_connect_success
     end
 
-    def loop
+    def start_session
+      raise NotImplementedError
     end
   end
 end
-
-# TCPChatApp::Client.new

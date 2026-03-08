@@ -3,15 +3,16 @@
 module TCPChatApp
   # Contains message formats for a nice chat interface for the user
   class UI
-    def initialize(user, output = $stdout)
-      @user = user
+    def initialize(output = $stdout)
+      print 'Enter your nickname: '
+      @user = gets.chomp
       @peer = nil
       @output = output
     end
 
     def welcome
       @output.puts <<~WELCOME
-      Welcome! You have been assigned id #{@user}. Currently trying to connect to server. Type 'exit' to quit at any time.
+      Welcome #{@user}! Currently trying to connect to server. Type 'exit' to quit at any time.
       WELCOME
     end
 
@@ -28,11 +29,11 @@ module TCPChatApp
     end
 
     def write_sent(message)
-      @output.puts("#{@user}(ME)>>> #{message}")
+      @output.puts("#{@user}>>> #{message}")
     end
 
     def write_received(message)
-      @output.puts("#{@peer}(PEER)<<< #{message}")
+      @output.puts("#{@peer}<<< #{message}")
     end
   end
 end
