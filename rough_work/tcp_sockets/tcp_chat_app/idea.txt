@@ -34,8 +34,12 @@ Remember: Make it SIMPLE SIMPLE SIMPLE
         - [] implement message sending/receiving
 
 - Server:
-        - [] Figure out the architecture
-        - [] Queue managing
+        - Figure out the architecture:
+        - [x] Understand Server loop: Ingest new clients, Process current
+          clients, Match new clients
+        - [] Connection class: Socket -> Application interface
+        - [] Connection lifecycle management
+                - echo messages
+        - [] Client Intake
+        - [] RoomManager
         - [] ChatRoom
-        - [] Message Relaying
-        - [] Event-Driven Server Loop
