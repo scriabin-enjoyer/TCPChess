@@ -13,7 +13,7 @@ module TCPChatApp
 
     def initialize
       @intake_queue = IntakeQueue.new
-      @clients = Array.new
+      @clients = []
       # Expose socket creation process just to be explicit
       @listening_socket = Socket.new(:INET, :STREAM).then do |sock|
         addr = Socket.pack_sockaddr_in(SERVER_PORT, SERVER_HOST)
@@ -27,20 +27,20 @@ module TCPChatApp
     # NOTE: WIP
     def run
       loop do
-        # before calling select, implement monitor_for_reading? and
-        # monitor_for_writing? on my Connection class, then generate the
-        # read_sockets, write_sockets for IO.select. The below is just here
-        # temporarily
-        read_ready, = IO.select([@listening_socket] + @clients, @clients)
-        read_ready.each { |conn| handle_readables(conn) }
+        # TODO: Need to also define hooks/callbacks for connections to register
+        # their interest in being writable — in the case that the server needs
+        # to relay messages, or ping clients, etc.
+        readable, writable = IO.select([@listening_socket] + @clients, @clients)
+        readable.each { |conn| handle_readable(conn) }
+        writable.each { |conn| handle_writable(conn) }
       end
     end
 
     # NOTE: WIP
-    def handle_readables(connection)
+    def handle_readable(connection)
       if connection == @listening_socket
         # In the very unlikely case that the listening_socket starts filling up
-        # its backlog, we should pop the queue until its empty
+        # its backlog, we should pop the backlog until its empty
         while (new_client = connection.accept_nonblock(exception: false)) != :wait_readable
           @intake_queue.process new_client
         end
@@ -53,14 +53,18 @@ module TCPChatApp
     def handle_client_event(connection)
       raise NotImplementedError
     end
+
+    def handle_writable(connection)
+      raise NotImplementedError
+    end
   end
 
+  # Represents a connection between the Client and this Server
   # Wraps all Socket logic, connection handling, etc.
-  # Input: Maintains its own personal buffer to receive data from the Transport layer
-  # Output: Provides methods to send data
-  # Connection Lifecycle: Startup, shutdown, etc.
-  # Protocol Bridge: Should handle streaming data from transport layer and also
-  # message boundaries for partial reads
+  # Manages all low-level socket input, output, and life-cycle
+  # Acts as a protocol bridge as well, should handle streaming data from
+  # transport layer and reconstructing full application-level messages,
+  # especially when the message boundaries are not preserved with partial reads
   class Connection
     def initialize(socket)
       raise NotImplementedError
@@ -69,6 +73,14 @@ module TCPChatApp
     def to_io
       raise NotImplementedError
     end
+  end
+
+  # Represents a chat room between 2 clients (Connection objects)
+  class ChatRoom
+  end
+
+  # Represents 
+  class RoomManager
   end
 
   # Processes newly accepted client sockets and matches them with another
