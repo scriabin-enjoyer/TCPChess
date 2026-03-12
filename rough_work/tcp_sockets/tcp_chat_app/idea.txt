@@ -20,26 +20,35 @@ Remember: Make it SIMPLE SIMPLE SIMPLE
 - Protocol:
         - [x] define message formats
         - [x] define message types
-        - [] Message Generators
-                - [] Handle message boundaries (esp. for variable-length)
-        - [] Message Serializer
-        - [] Message Parser
+        - [x] Message Serializer
+        - [x] Message Parser
+        - [] Message: Handle message boundaries properly
 
 - Client:
         - [x] connect to server on startup
         - [x] print welcome messages
-        - [] implement input handlers
+        - [] implement input/output handlers
         - [] implement quit control
         - [] implement shutdown and close
         - [] implement message sending/receiving
 
 - Server:
         - Figure out the architecture:
-        - [x] Understand Server loop: Ingest new clients, Process current
-          clients, Match new clients
-        - [] Connection class: Socket -> Application interface
-        - [] Connection lifecycle management
-                - echo messages
-        - [] Client Intake
-        - [] RoomManager
-        - [] ChatRoom
+        - [] Implement Reactor -- We only have 2 event types!
+        - [] Implement Abstract Handler Interface with appropriate callbacks:
+                - on_readable/on_data
+                - on_writable
+                - on_disconnect (transport level)
+        - [] Implement Accept Handler
+                - Should create Connection Handler to introduce clients into the system
+                - Verify that the reactor can handle multiple sockets
+        - [] Implement Connection Handler and Connection Manager/Registry
+        - [] Integrate Protocol handling into Connection Handlers
+        - [] 
+- TODO:
+        - [x] Implement Message::Parser
+        - [x] Test Message Module
+        - [] Work on Server: Echo server with multiple connections
+        - [] Work on Client: Implement full client
+        - [] Integrate Protocol logic
+        - [] Finish Client, Server, etc.
