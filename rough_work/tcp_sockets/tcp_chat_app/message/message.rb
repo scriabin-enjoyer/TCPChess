@@ -3,6 +3,7 @@
 module TCPChatApp
   module Message
     # Message Types and Lengths/Pack Directives (for fixed length messages)
+
     # No Op (Fixed Length)
     NOP_T = 0
     NOP_L = 0
@@ -15,31 +16,29 @@ module TCPChatApp
     ECHO_REPLY_T = 2
     ECHO_REPLY_L = 6
     ECHO_REPLY_P = "CCA6"
-    # Ready
+    # Ready (Variable Length)
     READY_T = 3
-    # Message
+    # Message (Variable Length)
     MSG_T = 4
-    # Message Relay
+    # Message Relay (Variable Length)
     MSG_RELAY_T = 5
     # Receipt (Fixed Length)
     RECEIPT_T = 6
     RECEIPT_L = 1
     RECEIPT_P = "CCC"
-    # Quit
+    # Quit (Fixed Length)
     QUIT_T = 7
     QUIT_L = 0
     QUIT_P = "CC"
-    # Shutdown
+    # Shutdown (Fixed Length)
     SHUTDOWN_T = 8
     SHUTDOWN_L = 0
     SHUTDOWN_P = "CC"
 
-    # generate_serial(type: Symbol, msg_data: Array) -> String(ASCII-8BIT)
     def self.generate_serial(type, msg_data: nil)
       raise NotImplementedError
     end
 
-    # parse(msg: String(ASCII-8BIT)) -> Array
     def self.parse(msg)
       raise NotImplementedError
     end
@@ -91,9 +90,106 @@ module TCPChatApp
       end
     end
 
-    # Functions to unpack and parse messages from the wire
-    # This should emit application-level messages
-    class Parser
+    # Functions to unpack and parse messages from the wire. This should emit
+    # application-level messages. Data that is passed to the methods in this
+    # module should consist of complete and validated binary strings that
+    # constitute legal app-level messages, formatted according to our protocol.
+    # We should still validate here regardless.
+    module Parser
+      class ParserError < StandardError; end
+
+      class << self
+        def nop(data)
+          t, l = data.unpack(NOP_P)
+          {
+            type: t,
+            length: l
+          }
+        end
+
+        def echo_req(data)
+          t, l, v = data.unpack(ECHO_REQ_P)
+          v.force_encoding(Encoding::ASCII_8BIT)
+          {
+            type: t,
+            length: l,
+            value: v
+          }
+        end
+
+        def echo_reply(data)
+          t, l, v = data.unpack(ECHO_REPLY_P)
+          v.force_encoding(Encoding::ASCII_8BIT)
+          {
+            type: t,
+            length: l,
+            value: v
+          }
+        end
+
+        def ready(data)
+          t = data.getbyte(0)
+          l = data.getbyte(1)
+          v = data.byteslice(2, l).force_encoding(Encoding::UTF_8)
+          {
+            type: t,
+            length: l,
+            value: v
+          }
+        end
+
+        def msg(data)
+          t = data.getbyte(0)
+          l = data.getbyte(1)
+          v = data.byteslice(2, l).force_encoding(Encoding::UTF_8)
+          {
+            type: t,
+            length: l,
+            value: v
+          }
+        end
+
+        def msg_relay(data)
+          t = data.getbyte(0)
+          l = data.getbyte(1)
+          v = data.byteslice(2, l).force_encoding(Encoding::UTF_8)
+          {
+            type: t,
+            length: l,
+            value: v
+          }
+        end
+
+        def receipt(data)
+          t, l, v = data.unpack(RECEIPT_P)
+          {
+            type: t,
+            length: l,
+            value: v
+          }
+        end
+
+        def quit(data)
+          t, l = data.unpack(QUIT_P)
+          {
+            type: t,
+            length: l
+          }
+        end
+
+        def shutdown(data)
+          t, l = data.unpack(SHUTDOWN_P)
+          {
+            type: t,
+            length: l
+          }
+        end
+
+        private
+
+        def validate(meth)
+        end
+      end
     end
   end
 end
