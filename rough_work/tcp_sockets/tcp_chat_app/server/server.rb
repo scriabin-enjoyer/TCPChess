@@ -11,9 +11,10 @@ module TCPChatApp
   # chatrooms within which clients can send each other messages.
   class Server
     SERVER_PORT = 2211
-    SERVER_HOST = '0.0.0.0'
+    SERVER_HOST = '127.0.0.1'
     MAX_BACKLOG_SIZE = 100
     LOG_FILE = $stdout
+    # TODO: HANDLE MAX CLIENTS
     MAX_CLIENTS = 1000
 
     def initialize
@@ -26,17 +27,22 @@ module TCPChatApp
         sock.listen(MAX_BACKLOG_SIZE)
         sock
       end
-      LOG_FILE.puts "{#{Time.now.utc}}: Server listening on #{SERVER_PORT} on all interfaces"
+      LOG_FILE.puts "{#{Time.now.utc}}: Server listening on #{SERVER_PORT} on all #{SERVER_HOST}"
     end
 
     def run
       loop do
+        # register connections that are interested in io operations
         to_read = @active_client_handles.values.select(&:monitor_for_reading?) + @listening_socket
         to_write = @active_client_handles.values.select(&:monitor_for_writing?)
 
+        # handle client events
         readables, writables = IO.select(to_read, to_write)
         readables.each { |conn| handle_readable(conn) }
         writables.each { |conn| handle_writable(conn) }
+
+        # register newly connected clients
+        @connection_handler.process_new_chatrooms
       end
     end
 
