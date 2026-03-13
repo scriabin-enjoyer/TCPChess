@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../message/message'
+
 module TCPChatApp
   # Represents a connection between the Client and this Server
   # Wraps all Socket logic, connection handling, etc.
@@ -13,12 +15,21 @@ module TCPChatApp
     def initialize(socket)
       @socket = socket
       @fd = socket.fileno
+      @message = Message
       @read_buffer = String.new
       @write_buffer = String.new
     end
 
     def to_io
       @socket
+    end
+
+    def on_readable
+      raise NotImplementedError
+    end
+
+    def on_writable
+      raise NotImplementedError
     end
 
     def monitor_for_reading?
