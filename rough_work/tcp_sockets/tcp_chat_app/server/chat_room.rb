@@ -9,7 +9,5 @@ module TCPChatApp
       @client1 = client1
       @client2 = client2
     end
-
-    # 
   end
 end
