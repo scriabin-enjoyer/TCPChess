@@ -20,6 +20,14 @@ module TCPChatApp
       @write_buffer = String.new
     end
 
+    def disconnected?
+      @socket.eof?
+    end
+
+    def close
+      @socket.close
+    end
+
     def to_io
       @socket
     end
@@ -36,8 +44,9 @@ module TCPChatApp
       true
     end
 
+    # NOTE: NOT IMPLEMENTED
     def monitor_for_writing?
-      raise NotImplementedError
+      false
     end
   end
 end
