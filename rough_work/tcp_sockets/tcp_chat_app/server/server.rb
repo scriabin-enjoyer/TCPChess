@@ -50,21 +50,33 @@ module TCPChatApp
 
     def run
       loop do
-        # register connections that are interested in io operations
-        to_read = @active_client_handles.values.select(&:monitor_for_reading?)
-        to_write = @active_client_handles.values.select(&:monitor_for_writing?)
+        # Remove disconnected clients before querying io-readiness
+        remove_disconnected_clients
+
+        # Register newly connected clients
+        register_new_rooms
+
+        # Register connections that are interested in io operations
+        to_read, to_write = query_io_interested_clients
 
         log :note, "#{to_read.size} readables, #{to_write.size} writables"
 
-        # handle client events
+        # Monitor for IO events
         readables, writables = IO.select(to_read + [@listening_socket], to_write)
 
         readables.each { |conn| handle_readable(conn) }
         writables.each { |conn| handle_writable(conn) }
-
-        # register newly connected clients
-        register_new_rooms
       end
+    end
+
+    def remove_disconnected_clients
+      raise NotImplementedError
+    end
+
+    def query_io_interested_clients
+      to_read = @active_client_handles.values.select(&:monitor_for_reading?)
+      to_write = @active_client_handles.values.select(&:monitor_for_writing?)
+      [to_read, to_write]
     end
 
     def handle_readable(connection)

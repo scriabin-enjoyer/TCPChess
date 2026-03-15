@@ -33,7 +33,7 @@ module TCPChatApp
 
     # echo handshake, ready messages
     def process_new_chatrooms
-
+      raise NotImplementedError
     end
   end
 end
