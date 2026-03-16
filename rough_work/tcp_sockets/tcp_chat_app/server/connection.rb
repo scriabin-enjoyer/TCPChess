@@ -20,18 +20,11 @@ module TCPChatApp
       @write_buffer = String.new
     end
 
-    def disconnected?
-      @socket.eof?
-    end
-
-    def close
-      @socket.close
-    end
-
     def to_io
       @socket
     end
 
+    # METHODS FOR READING/WRITING:
     def on_readable
       raise NotImplementedError
     end
@@ -40,6 +33,22 @@ module TCPChatApp
       raise NotImplementedError
       @socket.write_nonblock(@write_buffer)
       @write_buffer.clear
+    end
+
+    # METHODS FOR PARSING:
+    # METHODS FOR EMITTING EVENTS:
+    # METHODS FOR MANAGING SOCKET LIFECYCLE
+    def close
+      @socket.close
+    end
+
+    # METHODS FOR QUERYING STATE
+    def disconnected?
+      @socket.eof?
+    end
+
+    def state
+      @state
     end
 
     def monitor_for_reading?
