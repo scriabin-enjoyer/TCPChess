@@ -2,7 +2,7 @@
 
 require_relative 'chat_room'
 
-module TCPChatApp
+module TCPChatAppServer
   class AcceptHandler
     def initialize(connection_handler)
       @client_queue = []

@@ -2,7 +2,7 @@
 
 require_relative '../message/message'
 
-module TCPChatApp
+module TCPChatAppServer
   # Represents a connection between the Client and this Server
   # Wraps all Socket logic, connection handling, etc.
   # Manages all low-level socket input, output, and life-cycle

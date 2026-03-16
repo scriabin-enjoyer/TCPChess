@@ -2,7 +2,7 @@
 
 # rubocop:disable all
 
-module TCPChatApp
+module TCPChatAppServer
   module SocketErrors
     ERR_DESC = {
       Errno::EACCES => "search permission is denied for a component of the prefix path or write access to the socket is denied",

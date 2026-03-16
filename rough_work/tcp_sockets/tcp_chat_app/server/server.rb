@@ -16,7 +16,7 @@ def log(type, message)
   end
 end
 
-module TCPChatApp
+module TCPChatAppServer
   # Implements a single-threaded, event-driven server that maintains a list of
   # active socket connections, and waits for read/write events from the sockets
   # and delegates these events to appropriate handelrs.
@@ -87,4 +87,4 @@ module TCPChatApp
   end
 end
 
-TCPChatApp::Server.new.run
+TCPChatAppServer::Server.new.run

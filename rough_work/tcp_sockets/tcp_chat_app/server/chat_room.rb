@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module TCPChatApp
+module TCPChatAppServer
   # Consists of 2 clients
   # Responsible for handling all state and communication between 2 connected
   # clients

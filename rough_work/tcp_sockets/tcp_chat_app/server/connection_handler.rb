@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module TCPChatApp
+module TCPChatAppServer
   class ConnectionHandler
     def initialize
       @room_manager = []
