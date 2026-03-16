@@ -28,18 +28,16 @@ module TCPChatApp
     MAX_CLIENTS = 1000
 
     def initialize
-      @active_client_handles = {}
-      @connection_handler = ConnectionHandler.new
-      @accept_handler = AcceptHandler.new(@connection_handler)
+      @connection_handles = {}
 
       trap(:INT) do
-        @active_client_handles.each_value(&:close)
+        @connection_handles.each_value(&:close)
         log :note, "Closed all client connections. Shutting Down."
         exit
       end
 
       # Explicitly setup server socket
-      @listening_socket = Socket.new(:INET, :STREAM).then do |sock|
+      @control_socket = Socket.new(:INET, :STREAM).then do |sock|
         addr = Socket.pack_sockaddr_in(SERVER_PORT, SERVER_HOST)
         sock.bind addr
         sock.listen(MAX_BACKLOG_SIZE)
@@ -50,53 +48,34 @@ module TCPChatApp
 
     def run
       loop do
-        # Remove disconnected clients before querying io-readiness
-        remove_disconnected_clients
-
-        # Register newly connected clients
-        register_new_rooms
-
-        # Register connections that are interested in io operations
         to_read, to_write = query_io_interested_clients
 
-        log :note, "#{to_read.size} readables, #{to_write.size} writables"
-
-        # Monitor for IO events
-        readables, writables = IO.select(to_read + [@listening_socket], to_write)
+        readables, writables = IO.select(to_read + [@control_socket], to_write)
 
         readables.each { |conn| handle_readable(conn) }
         writables.each { |conn| handle_writable(conn) }
       end
     end
 
-    def remove_disconnected_clients
-      raise NotImplementedError
-    end
-
     def query_io_interested_clients
-      to_read = @active_client_handles.values.select(&:monitor_for_reading?)
-      to_write = @active_client_handles.values.select(&:monitor_for_writing?)
+      to_read = @connection_handles.values.select(&:monitor_for_reading?)
+      to_write = @connection_handles.values.select(&:monitor_for_writing?)
       [to_read, to_write]
     end
 
     def handle_readable(connection)
-      if connection == @listening_socket
+      if connection == @control_socket
         loop do
-          log :note, "Accepting new clients"
-
           new_client, addr = connection.accept_nonblock(exception: false)
-          if new_client == :wait_readable
-            log :note, "Listening Socket no longer readable, breaking loop"
-            return
-          end
+          return if new_client == :wait_readable
 
-          log :note, "Accepted new client #{new_client}"
-
-          @active_client_handles[new_client.fileno] = Connection.new(new_client)
+          @connection_handles[new_client.fileno] = Connection.new(new_client)
           @accept_handler.intake(new_client)
 
           log :note, "Client Processed: #{addr}"
         end
+      elsif connection.closed?
+        @connection_handles.delete(connection.fd)
       else
         @connection_handler.process_readable(connection)
       end
@@ -104,10 +83,6 @@ module TCPChatApp
 
     def handle_writable(connection)
       connection.on_writable
-    end
-
-    def register_new_clients
-      @connection_handler.process_new_chatrooms
     end
   end
 end

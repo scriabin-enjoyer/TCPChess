@@ -52,12 +52,12 @@ module TCPChatApp
     end
 
     # METHODS FOR QUERYING STATE
-    def disconnected?
-      @socket.eof?
-    end
-
     def state
       @state
+    end
+
+    def closed?
+      @socket.closed?
     end
 
     def monitor_for_reading?
