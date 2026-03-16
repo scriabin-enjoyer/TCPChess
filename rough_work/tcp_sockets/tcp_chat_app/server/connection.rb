@@ -9,15 +9,20 @@ module TCPChatApp
   # Acts as a protocol bridge as well, should handle streaming data from
   # transport layer and reconstructing full application-level messages,
   # especially when the message boundaries are not preserved with partial reads
+  #
+  # Connection/Server:
+  #   - on_readable, on_writable,
   class Connection
     attr_reader :socket, :fd
 
     def initialize(socket)
       @socket = socket
       @fd = socket.fileno
+      @event_handler = EventHandler.new
       @message = Message
       @read_buffer = String.new
       @write_buffer = String.new
+      @write_event_queue = []
     end
 
     def to_io
@@ -25,10 +30,14 @@ module TCPChatApp
     end
 
     # METHODS FOR READING/WRITING:
+
+    # Stream out binary data from socket
+    # Emit event objects
     def on_readable
       raise NotImplementedError
     end
 
+    # Flush event queue
     def on_writable
       raise NotImplementedError
       @socket.write_nonblock(@write_buffer)
