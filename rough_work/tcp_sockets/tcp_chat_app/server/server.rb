@@ -103,7 +103,7 @@ module TCPChatApp
     end
 
     def handle_writable(connection)
-      raise NotImplementedError
+      connection.on_writable
     end
 
     def register_new_clients

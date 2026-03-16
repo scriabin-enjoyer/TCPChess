@@ -38,6 +38,8 @@ module TCPChatApp
 
     def on_writable
       raise NotImplementedError
+      @socket.write_nonblock(@write_buffer)
+      @write_buffer.clear
     end
 
     def monitor_for_reading?
