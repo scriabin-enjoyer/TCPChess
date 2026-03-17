@@ -13,7 +13,7 @@ module TCPChatAppServer
   # Connection/Server:
   #   - on_readable, on_writable,
   class Connection
-    attr_reader :socket, :fd
+    attr_reader :socket
 
     def initialize(socket)
       @socket = socket
@@ -25,6 +25,10 @@ module TCPChatAppServer
       @write_event_queue = []
     end
 
+    def fileno
+      @fd
+    end
+
     def to_io
       @socket
     end
@@ -32,6 +36,10 @@ module TCPChatAppServer
     # METHODS FOR READING/WRITING:
 
     # Stream out binary data from socket
+    def on_connect
+      puts "OH YEAH BABY"
+    end
+
     # Emit event objects
     def on_readable
       raise NotImplementedError
