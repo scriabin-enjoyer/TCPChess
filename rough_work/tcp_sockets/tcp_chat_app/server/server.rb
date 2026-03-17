@@ -41,7 +41,7 @@ module TCPChatAppServer
         sock.listen(MAX_BACKLOG_SIZE)
         sock
       end
-      log :note, "Listening on port #{SERVER_PORT} on #{SERVER_HOST}"
+      log :note, "Listening on port #{SERVER_PORT} on interface #{SERVER_HOST}"
     end
 
     def run
