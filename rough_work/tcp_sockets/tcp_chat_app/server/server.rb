@@ -63,7 +63,7 @@ module TCPChatAppServer
       if connection == @control_socket
         # Process and flush all clients trying to connect
         loop do
-          client_socket, addr = connection.accept_nonblock(exception: false)
+          client_socket, addr = @control_socket.accept_nonblock(exception: false)
           break if client_socket == :wait_readable
 
           new_connection = Connection.new(client_socket)

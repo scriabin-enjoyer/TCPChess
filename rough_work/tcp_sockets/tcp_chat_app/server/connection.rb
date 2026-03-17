@@ -10,8 +10,8 @@ module TCPChatAppServer
   # transport layer and reconstructing full application-level messages,
   # especially when the message boundaries are not preserved with partial reads
   #
-  # Connection/Server:
-  #   - on_readable, on_writable,
+  # Connection/Server interface:
+  #   - on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw? predicates,
   class Connection
     attr_reader :socket
 
