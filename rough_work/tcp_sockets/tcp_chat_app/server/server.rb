@@ -73,7 +73,7 @@ module TCPChatAppServer
       elsif connection.closed?
         # NOTE: Remember to properly handle cleaning up this connection from
         # the entire server
-        @connection_handles.delete(connection.fd)
+        @connection_handles.delete(connection.fileno)
       else
         connection.on_readable
       end

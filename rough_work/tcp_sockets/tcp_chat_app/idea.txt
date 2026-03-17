@@ -42,8 +42,11 @@ Remember: Make it SIMPLE SIMPLE SIMPLE
                 - [] RoomFactory
         - [] Connection interface
         - [] Tests
-- TODO:
-        - Server/Reactor
-        - Connection/Message
+
+- TODO (currently):
+        - [x] Server/Reactor: Just get the main code up and running
+        - [] Connection/Message:
+                - Message streaming and parsing
+                - 
         - EventHandler
         - Manager Layer
