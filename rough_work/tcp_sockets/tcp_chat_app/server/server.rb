@@ -61,7 +61,7 @@ module TCPChatAppServer
 
     def handle_readable(connection)
       if connection == @control_socket
-        # flush all clients in the listen queue backlog
+        # Process and flush all clients trying to connect
         loop do
           client_socket, addr = connection.accept_nonblock(exception: false)
           break if client_socket == :wait_readable
@@ -75,11 +75,15 @@ module TCPChatAppServer
         # the entire server
         @connection_handles.delete(connection.fileno)
       else
+        # Main work done here. This callback cascades through the entire server
+        # application
         connection.on_readable
       end
     end
 
     def handle_writable(connection)
+      # This should just flush write queue for the connection
+      # NOTE: Remember to deal with partial/blocked writes!
       connection.on_writable
     end
   end
