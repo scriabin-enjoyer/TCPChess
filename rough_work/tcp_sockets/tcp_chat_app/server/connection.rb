@@ -12,13 +12,15 @@ module TCPChatAppServer
   #
   # Connection/Server interface:
   #   - on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw? predicates,
+  #
+  # Connection/EventHandler interface:
   class Connection
     attr_reader :socket
 
-    def initialize(socket)
+    def initialize(socket, event_handler_instance)
       @socket = socket
       @fd = socket.fileno
-      @event_handler = EventHandler.new
+      @event_handler = event_handler_instance
       @message = Message
       @read_buffer = String.new
       @write_buffer = String.new
