@@ -3,15 +3,18 @@
 require_relative '../message/message'
 
 module TCPChatAppServer
-  # Represents a connection between the Client and this Server
-  # Wraps all Socket logic, connection handling, etc.
-  # Manages all low-level socket input, output, and life-cycle
-  # Acts as a protocol bridge as well, should handle streaming data from
-  # transport layer and reconstructing full application-level messages,
-  # especially when the message boundaries are not preserved with partial reads
+  # Connection itself consists of several layers:
+  #
+  # Connection/EventHandler interface
+  #
+  # Connection::EventEmitter layer
+  # Connection::StateManagement layer
+  # Connection::Parsing layer
+  #
+  # Connection/Server interface
   #
   # Connection/Server interface:
-  #   - on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw? predicates,
+  # on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw?
   #
   # Connection/EventHandler interface:
   class Connection
