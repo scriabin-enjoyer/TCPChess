@@ -90,12 +90,9 @@ module TCPChatApp
       end
     end
 
-    # Functions to unpack and parse messages from the wire. This should emit
-    # application-level messages. Data that is passed to the methods in this
-    # module should consist of complete and validated binary strings that
-    # constitute legal app-level messages, formatted according to our protocol.
-    # We should still validate here regardless.
-    module Parser
+    # Receives full length protocol messages (binary strings) and returns
+    # unpacked messages. Exact app-level event structures TBD.
+    module EventEmitter
       class ParserError < StandardError; end
 
       class << self
@@ -189,6 +186,25 @@ module TCPChatApp
 
         def validate(meth)
         end
+      end
+    end
+
+    # A stateful TLV Parser. Implements a finite state machine. The following
+    # interface should receive data from TCP (via TCP sockets), parse it, and
+    # emit as many fully-formed application level events as possible.
+    # Incomplete messages and offsets should be stored for use later, when more
+    # data is available to read.
+    class Parser
+      def initialize
+        @read_buffer = String.new
+      end
+
+      def <<(bin_data)
+        @read_buffer << bin_data
+      end
+
+      def try_parse
+        raise NotImplementedError
       end
     end
   end

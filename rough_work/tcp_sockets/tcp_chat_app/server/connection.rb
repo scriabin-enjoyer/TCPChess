@@ -3,9 +3,13 @@
 require_relative '../message/message'
 
 module TCPChatAppServer
+  # (Application-level) Events are specified by the pair (conn, event), where
+  # conn is a particular connection object and event is a hash that specifies a
+  # protocol-level message
+  #
   # Connection itself consists of several layers:
   #
-  # Connection/EventHandler interface
+  # Connection/EventHandler interface: 
   #
   # Connection::EventEmitter layer
   # Connection::StateManagement layer
@@ -13,7 +17,10 @@ module TCPChatAppServer
   #
   # Connection/Server interface
   #
-  # Connection/Server interface:
+  # Connection/Server interface is unidirectional — the Server has a reference
+  # to Connection, but Connection knows nothing about the Server.
+  #
+  # The Server uses this subset of the interface defined in this class:
   # on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw?
   #
   # Connection/EventHandler interface:
