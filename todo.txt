@@ -1,0 +1,35 @@
+## Phase 0: Protocol
+
+Figure out the application protocol. Should specify complete communication
+semantics that supports all features of chess with chat.
+
+- [] Implement the protocol
+
+## Phase 1: Reactor Skeleton, Connection Wrappers
+
+Implement the main reactor loop and connection logic, without concern for other
+aspects of the entire application. We should have a working echo server once
+this is complete.
+
+- [] Implement Server class (reactor)
+        - [] TCP Server setup (remember to set SOREUSEADDR option)
+        - [] Shutdown cleanup
+        - [] IO.select loop
+        - [] invoke r/w callbacks
+- [] Implement Connection class
+
+## Phase 2: Event Pipeline, Protocol Integration
+
+Parse bytes from Connection layer read buffers, emit event objects (probably
+just use a hash here), methods to receive events are push them to write queues
+on the Connection objects. 
+
+## Phase 3: Application Container
+
+## Phase 4: Chess Logic
+
+## Phase 5: Error Handling, Edge Cases
+ 
+## Phase 6: Client
+ 
+## Last Phase: Testing, Performance Profiling
