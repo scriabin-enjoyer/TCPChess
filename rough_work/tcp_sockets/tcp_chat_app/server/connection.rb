@@ -21,7 +21,7 @@ module TCPChatAppServer
   # to Connection, but Connection knows nothing about the Server.
   #
   # The Server uses this subset of the interface defined in this class:
-  # on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw?
+  # on_readable, on_writable, on_connect, closed?, fileno, monitor_for_rw?, to_io
   #
   # Connection/EventHandler interface:
   class Connection
@@ -30,11 +30,9 @@ module TCPChatAppServer
     def initialize(socket, event_handler_instance)
       @socket = socket
       @fd = socket.fileno
+      @parser = Parser.new
       @event_handler = event_handler_instance
-      @message = Message
-      @read_buffer = String.new
-      @write_buffer = String.new
-      @write_event_queue = []
+      @event_read_queue = []
     end
 
     def fileno
@@ -45,16 +43,17 @@ module TCPChatAppServer
       @socket
     end
 
-    # METHODS FOR READING/WRITING:
-
     # Stream out binary data from socket
     def on_connect
-      puts "OH YEAH BABY"
+      raise NotImplementedError
     end
 
-    # Emit event objects
+    # Emit event objects:
+    # Read all data from socket into a buffer
+    # Parse and emit as many events to the EventHandler as possible
     def on_readable
       raise NotImplementedError
+      @parser.consume(@socket)
     end
 
     # Flush event queue
@@ -64,16 +63,8 @@ module TCPChatAppServer
       @write_buffer.clear
     end
 
-    # METHODS FOR PARSING:
-    # METHODS FOR EMITTING EVENTS:
-    # METHODS FOR MANAGING SOCKET LIFECYCLE
     def close
       @socket.close
-    end
-
-    # METHODS FOR QUERYING STATE
-    def state
-      @state
     end
 
     def closed?
@@ -84,9 +75,50 @@ module TCPChatAppServer
       true
     end
 
-    # NOTE: NOT IMPLEMENTED
     def monitor_for_writing?
       false
     end
+  end
+end
+
+# A stateful TLV Parser. Implements a finite state machine. The following
+# interface should receive data from TCP (via TCP sockets), parse it, and
+# emit as many fully-formed application level events as possible.
+# Incomplete messages and offsets should be stored for use later, when more
+# data is available to read.
+class Parser
+  # states:
+  STATE = {
+    type: 0,
+    length: 1,
+    value: 2
+  }
+
+  def initialize
+    @read_buffer = String.new
+    @offset = 0
+    @type = nil
+    @length = nil
+    @value = nil
+    @bytes_to_read = 0
+  end
+
+  def emit_messages
+    parse until @state == :waiting_on_data
+  end
+
+  def parse
+    case @read_buffer[@offset]
+    when false
+    else
+    end
+  end
+
+  def <<(bin_data)
+    @read_buffer << bin_data
+  end
+
+  def try_parse
+    raise NotImplementedError
   end
 end

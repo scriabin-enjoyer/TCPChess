@@ -181,30 +181,6 @@ module TCPChatApp
             length: l
           }
         end
-
-        private
-
-        def validate(meth)
-        end
-      end
-    end
-
-    # A stateful TLV Parser. Implements a finite state machine. The following
-    # interface should receive data from TCP (via TCP sockets), parse it, and
-    # emit as many fully-formed application level events as possible.
-    # Incomplete messages and offsets should be stored for use later, when more
-    # data is available to read.
-    class Parser
-      def initialize
-        @read_buffer = String.new
-      end
-
-      def <<(bin_data)
-        @read_buffer << bin_data
-      end
-
-      def try_parse
-        raise NotImplementedError
       end
     end
   end
