@@ -33,3 +33,8 @@ on the Connection objects.
 ## Phase 6: Client
  
 ## Last Phase: Testing, Performance Profiling
+
+- [] Headless Client
+- [] Latency Testing
+- [] Resource Exhaustion
+- [] Profiling
