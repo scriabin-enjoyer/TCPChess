@@ -5,10 +5,9 @@
 # connects, they may request the server to match them with another player to
 # play a game of chess. The server will match players on a FIFO basis because
 # let's not implement complex match-making for a game that no one will actually
-# play. The player who waits in the queue will automatically be assigned white
-# and the player who joins a game with someone who was already waiting will be
-# assigned black. The server will use TCP Sockets to facilitate IPC between
-# clients, using the server as a centralized intermediary.
+# play. Players will be assigned white or black at random. The server will use
+# TCP Sockets to facilitate IPC between clients, using the server as a
+# centralized intermediary.
 
 # When a game has been initiated between two players, they will be presented
 # with two windows: a game window and a chat window, with an additional status
