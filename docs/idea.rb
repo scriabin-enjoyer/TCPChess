@@ -59,3 +59,51 @@
 #
 # To start the server:
 # $ ruby rbchess.rb --server my_identifying_name_with_no_spaces
+#
+#
+#
+#
+#
+#
+# Message flow: Assume that Client and Server have successfully
+# handshaked, that the Server is always correct, and that the clients
+# implement the protocol correctly and send logically valid messages
+
+# (Server requests client to echo back a time stamp.
+# Server: { type: echo_req, value: TIME_STAMP } -> Client
+# Client: { type: echo_reply, value: TIME_STAMP } -> Server
+
+# (Client is prompted to enter their name and confirm they want to be matched,
+# initiating a join request message)
+# Client: { type: join_request, value: name } -> Server
+# Server: { type: ack, value: join_request } -> Client
+
+# (server matches client with another client waiting)
+# Server: { type: join_success, value: PEER_NAME } -> Client
+
+# (server sets up a chess game instance between them)
+# Server: { type: game_ready, value: COLOR } -> ClientA, ClientB
+
+# (client messages peer a glhf)
+# ClientA: { type: msg, value: "glhf" } -> Server
+# Server: { type: msg_relay, value: "glhf" } -> ClientB
+# ClientB: { type: ack, value: MSG_RELAY } -> Server
+# Server: { type: message_success } -> ClientA, ClientB
+
+# (ClientA makes a move)
+# ClientA: {type: move_request, value: XY } -> Server
+#
+# (Server receives move message, validates and accepts)
+# Server: { type: board_update, value: BOARD } -> ClientA, ClientB
+#
+# 
+#
+#
+#
+#
+#
+#
+#
+#
+#
+#
