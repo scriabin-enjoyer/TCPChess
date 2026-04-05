@@ -3,7 +3,14 @@
 Figure out the application protocol. Should specify complete communication
 semantics that supports all features of chess with chat.
 
-- [] Implement the protocol
+NOW:
+- [] Implement SYSTEM type message
+- [] Implement CHAT type message
+- [] Implement first draft of a TLV Parser
+
+LATER:
+- [] Implement GAME type messages (Doesn't need to be complete, just understand
+     the idea)
 
 ## Phase 1: Reactor Skeleton, Connection Wrappers
 
@@ -11,12 +18,20 @@ Implement the main reactor loop and connection logic, without concern for other
 aspects of the entire application. We should have a working echo server once
 this is complete.
 
-- [] Implement Server class (reactor)
-        - [] TCP Server setup (remember to set SOREUSEADDR option)
-        - [] Shutdown cleanup
-        - [] IO.select loop
-        - [] invoke r/w callbacks
-- [] Implement Connection class
+- [] Implement Server class (reactor):
+    - [] TCP Server setup
+    - [] Resource allocation, TCP options (remember SOREUSEADDR)
+    - [] Shutdown cleanup
+    - [] IO.select loop
+    - [] invoke r/w callbacks
+- [] Implement Connection class:
+    - [] Interface with Server
+    - [] Interface with Event Layer
+    - [] State management
+    - [] Connection health, status routines, 
+    - [] Figure out keep-alives and timeouts
+- [] Implement Parser and Emitter fully
+        
 
 ## Phase 2: Event Pipeline, Protocol Integration
 
