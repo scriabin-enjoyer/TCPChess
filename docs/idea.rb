@@ -59,51 +59,54 @@
 #
 # To start the server:
 # $ ruby rbchess.rb --server my_identifying_name_with_no_spaces
-#
-#
-#
-#
-#
-#
-# Message flow: Assume that Client and Server have successfully
-# handshaked, that the Server is always correct, and that the clients
-# implement the protocol correctly and send logically valid messages
 
-# (Server requests client to echo back a time stamp.
-# Server: { type: echo_req, value: TIME_STAMP } -> Client
-# Client: { type: echo_reply, value: TIME_STAMP } -> Server
+=begin
 
-# (Client is prompted to enter their name and confirm they want to be matched,
-# initiating a join request message)
-# Client: { type: join_request, value: name } -> Server
-# Server: { type: ack, value: join_request } -> Client
+===============================================================================
+Message flow: Chat Happy Path
+Assume that Client and Server have successfully handshaked, that the Server
+is always correct, and that the clients implement the protocol correctly and
+send logically valid messages
 
-# (server matches client with another client waiting)
-# Server: { type: join_success, value: PEER_NAME } -> Client
+(Server requests Client to echo back a time stamp)
+Server: { type: SYSTEM, value: ECHO_REQ } -> Client
+Client: { type: SYSTEM, value: ECHO_REPLY } -> Server
 
-# (server sets up a chess game instance between them)
-# Server: { type: game_ready, value: COLOR } -> ClientA, ClientB
+(Client informs Server they want to play chess)
+Client: { type: SYSTEM, value: JOIN(game_type, name) } -> Server
+Server: { type: SYSTEM, value: ACK(game_type, name) } -> Client
 
-# (client messages peer a glhf)
-# ClientA: { type: msg, value: "glhf" } -> Server
-# Server: { type: msg_relay, value: "glhf" } -> ClientB
-# ClientB: { type: ack, value: MSG_RELAY } -> Server
-# Server: { type: message_success } -> ClientA, ClientB
+(Server matches Client with a peer, sets up a game room for them, and informs
+both clients that the game is ready to be played)
+Server: { type: SYSTEM, value: GAME_START(game_init_data) } -> ClientA, ClientB
 
-# (ClientA makes a move)
-# ClientA: {type: move_request, value: XY } -> Server
+(Client messages peer a glhf)
+ClientA: { type: CHAT, value: MSG("glhf") } -> Server
+Server: { type: CHAT, value: MSG_RELAY("glhf") } -> ClientB
+ClientB: { type: CHAT, value: MSG_ACK } -> Server
+Server: { type: CHAT, value: MSG_ACK } -> ClientA
+===============================================================================
+=end
+
+# Features:
+# - Reactor
+# - Protocol:
+#   - SYSTEM
+#   - CHAT
+#   - GAME (Chess, Scrabble)
+# - GameLobby logic
+# - Specific Game Application code
 #
-# (Server receives move message, validates and accepts)
-# Server: { type: board_update, value: BOARD } -> ClientA, ClientB
-#
-# 
-#
-#
-#
-#
-#
+# 0. Protocol Spec (SYSTEM, CHAT, GAME)
+# 1. Parser (SYSTEM, CHAT, GAME)
+# 1. Reactor basics
+# 2. Connection basics -> Echo
+# 3. Protocol: SYSTEM
+# 4. Protocol: CHAT
+# 5. 
 #
 #
 #
 #
 #
+# Server on_readable cascade data flow:
