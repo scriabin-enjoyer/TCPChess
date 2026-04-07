@@ -62,11 +62,12 @@ fields in bytes
 - Exactly 1 byte
 - If the value of this field is `0xFF`, then this indicates a SYSTEM-level
 message.
-- If the MSB of this field is 0, then this field indicates a specific GAME that
-the server may support. 7 bits allows the protocol to support 128 different
-games.
-- Values in the range `0b10000000` to `0b11111110` are reserved. Clients that
-transmit a **Type1** header in this range should be rejected by the server.
+- If the MSB of this field is 0, then this field indicates a specific GAME
+type that the server may support. 7 bits allows the protocol to support 128
+different games.
+- The Value `0b00000000` and Values in the range `0b10000000` to `0b11111110`
+are reserved. Clients that transmit a **Type1** header in this range should be
+rejected by the server.
 
 ### 2.2 Length Field
 - Exactly 1 byte
