@@ -5,6 +5,8 @@ semantics that supports all features of chess with chat.
 
 NOW:
 - [] Implement SYSTEM type message
+    - [x] echo req/reply, ping/pong,  bye
+    - [] join game, queued, join success, game disconnect, leave game, gamestart, leavegame
 - [] Implement CHAT type message
 - [] Implement first draft of a TLV Parser
 
