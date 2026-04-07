@@ -14,7 +14,6 @@
     4.3 Communication Semantics  
 5. Server Lifecycle
 6. Client Lifecycle
-7. Sequence Diagrams, State Machines
 
 ## 0. Introduction
 This following protocol implements the syntax, semantics, and messaging formats
@@ -95,35 +94,37 @@ that the server supports.
 
 #### 3.1.1 Messages for client-server connectivity:
 
-**ECHO_REQ**: Initiated by Server to measure RTT of a client
+**ECHO_REQ**: Initiated by Server to measure RTT of a client.
 - Type1 must be `0xFF`
-- Length must be `0x0C`
+- Length must be `0x0D`
 - Type2 must be `0x01`
 - Value must be 12 ASCII encoded bytes representing a UTC timestamp as
 `"HH:MM:SS:sss"` (hour, minute, second, millisecond)
 
 **ECHO_REPLY**: Initiated by Client to respond to ECHO_REQ. Must not be sent
-before receiving an ECHO_REQ from server
+before receiving an ECHO_REQ from server.
 - Type1 must be `0xFF`
-- Length must be `0x0A`
+- Length must be `0x0D`
 - Type2 must be `0x02`
 - Value MUST be exactly the 9 bytes that were received in the most recent
 ECHO_REQ message
 
-**PING**: Initiated by Server to ping for client responsiveness
+**PING**: Initiated by Server to ping for client responsiveness.
 - Type1 must be `0xFF`
 - Length must be `0x01`
 - Type2 must be `0x03`
 - Value field must be omitted
 
 **PONG**: Initiated by Client to respond to Server Ping. Must not be sent
-before receiving a PING from server
+before receiving a PING from server.
 - Type1 must be `0xFF`
 - Length must be `0x01`
 - Type2 must be `0x04`
 - Value field must be omitted
 
-**BYE**: Initiated by Client or Server to indicate disconnection. May be sent at any time. The Value field is optional and may contain arbitrary bytes intended to be read as an ASCII encoded string.
+**BYE**: Initiated by Client or Server to indicate disconnection. May be sent
+at any time. The Value field is optional and may contain arbitrary bytes
+intended to be read as an ASCII encoded string.
 - Type1 must be `0xFF`
 - Length must be in the range `0x01-0xFF`
 - Type2 must be `0x05`
@@ -131,71 +132,91 @@ before receiving a PING from server
 
 #### 3.1.2 Messages for managing game lobby state:
 
-**JOIN_GAME**: Initiated by Client to request to join a specific game offered by the server
+**JOIN_GAME**: Initiated by Client to request to join a specific game offered
+by the server. Must not be sent if Client is already in a game. The Value field
+should represent one of the specific GAME-types that the server supports.
 - Type1 must be `0xFF`
-- Length must be in the range `0b00000001`-`0b01111111`
+- Length must be `0x02`
 - Type2 must be `0x06`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`
 
-**QUEUED**: Initiated by Server to inform Client their JOIN_GAME request is being processed
+**QUEUED**: Initiated by Server to inform Client their **JOIN_GAME** request is
+being processed. Must not be sent before receiving a **JOIN_GAME** from Client.
+The Value field should represent the Value field of a **JOIN_GAME** message
+that a Client sent.
 - Type1 must be `0xFF`
-- Length
+- Length must be `0x02`
 - Type2 must be `0x07`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`. 
 
-**JOIN_SUCCESS**: Initiated by Server to inform Client that they have successfully joined a game lobby
+**JOIN_SUCCESS**: Initiated by Server to inform Client that they have
+successfully joined a game lobby. Must not be sent before sending a **QUEUED**
+message to the client. The Value field should represent the Value field of a
+**JOIN_GAME** message that a Client sent.
 - Type1 must be `0xFF`
-- Length
+- Length must be `0x02`
 - Type2 must be `0x08`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`
 
-**GAME_DISCONNECT**: Initiated by Server to inform Client they were disconnected from a game (but not the server)
+**GAME_START**: Initiated by Server to inform Client the game has started, and
+that they may now send GAME-specific messages The Value field should represent
+the Value field of a **JOIN_GAME** message that a Client sent.
 - Type1 must be `0xFF`
-- Length
+- Length must be `0x02`
 - Type2 must be `0x09`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`
 
-**LEAVE_GAME**: Initiated by Client to inform Server they are leaving a game
+**GAME_END**: Initiated by Server to inform Client the game has ended and that
+they may no longer send GAME-specific messages The Value field should represent
+the Value field of a **JOIN_GAME** message that a Client sent.
 - Type1 must be `0xFF`
-- Length
+- Length `0x02`
 - Type2 must be `0x0A`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`
 
-**GAME_START**: Initiated by Server to inform Client the game has started, and that the Server is now accepting GAME-specific messages
+**GAME_DISCONNECT**: Initiated by Server to inform Client they were
+disconnected from a game but not from the server The Value field should
+represent the Value field of a **JOIN_GAME** message that a Client sent.
 - Type1 must be `0xFF`
-- Length
+- Length must be `0x02`
 - Type2 must be `0x0B`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`
 
-**GAME_END**: Initiated by Server to inform Client the game has ended and that they may no longer send GAME-specific messages
+**LEAVE_GAME**: Initiated by Client to inform Server they are leaving a game,
+or to indicate they no longer wish to be **QUEUED** for a specific GAME The
+Value field should represent the Value field of a **JOIN_GAME** message that a
+Client sent.
 - Type1 must be `0xFF`
-- Length
+- Length must be `0x02`
 - Type2 must be `0x0C`
-- Value
+- Value must be a valid 1 byte GAME identifier in the range
+`0b00000001`-`0b01111111`
 
 #### 3.1.3 Formats for reliability, diagnostics, and server utilities
 
-**ACK**: acknowledgement of receipt
-- Type1 must be `0xFF`
-- Length must by `0x02`
-- Type2 must be `0x0D`
-- Value must be one byte in the range `0x01`-`0x0F` i.e. it must be some SYSTEM-level Type2 value specified in this document.
+**ACK**: acknowledgement of receipt of a general message
+- Specification TBD
 
 **INFO**: general information exchange
 - Type1 must be `0xFF`
 - Length must be in the range `0x02`-`0xFF`
 - Type2 must be `0x0E`
-- Value must be Length bytes in length and must 
+- Value may be any arbitrary sequence of bytes up to 254 bytes in length. This
+field is intended to be interpreted as an ASCII encoded byte string.
 
-**ERROR**: generic error for protocol violations, malformed 
+**ERROR**: generic error for protocol violations. See below for error codes.
 - Type1 must be `0xFF`
-- Length
+- Length must be `0x02`
 - Type2 must be `0x0F`
-- Value
+- Value must be any value in the range `0x00`-`0xFF`
 
 ### 3.2 Info Codes, Error Codes
-
-### 3.3 Communication Semantics   
 
 ## 4. GAME Layer: Application Plane (Chess)  
 ### 4.1 Message Formats  
@@ -221,6 +242,6 @@ will outline some possible chess-related message types here:
 
 ## 5. Server Lifecycle
 
-## 6. Client Lifecycle
+Connection States := IDLE | QUEUED | IN_GAME | CLOSED | UNRESPONSIVE
 
-## 7. Sequence Diagrams, State Machines
+## 6. Client Lifecycle
