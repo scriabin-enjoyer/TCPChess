@@ -3,7 +3,7 @@
 ## Contents
 0. Introduction
 1. Overview: Transport & Framing
-2. Message and Header Structure
+2. Message Structure
 3. SYSTEM: Control Plane  
     3.1 Message Formats  
     3.2 Error Codes  
@@ -50,12 +50,12 @@ SYSTEM messages.
 - Maximum Message Size: 257 bytes
 - Minimum Message Size: 3 bytes
 
-## 2. Message and Header Structure
+## 2. Message Structure
 Each message consists of 3 fixed length fields and 1 variable length field:
 - **Type1**: specifies a top-level message type (SYSTEM or GAME)
 - **Length**: specifies the length of the **Type2** and **Value** fields in
 bytes
-- **Type2**: specifies a game-specific message type or a system-level op code
+- **Type2**: specifies a game-specific or system-level message type
 - **Value**: payload data
 
 ### 2.1 Type1 Field
@@ -134,28 +134,68 @@ to include this Value field in the message, and it may be omitted.
 #### 3.1.2 Formats for Game Lobby state:
 
 **JOIN_GAME**:
+- Type1
+- Length
+- Type2
+- Value
 
 **QUEUED**:
+- Type1
+- Length
+- Type2
+- Value
 
 **JOIN_SUCCESS**:
+- Type1
+- Length
+- Type2
+- Value
 
 **LOBBY_DISCONNECT**:
+- Type1
+- Length
+- Type2
+- Value
 
 **LEAVE_LOBBY**:
+- Type1
+- Length
+- Type2
+- Value
 
 #### 3.1.3 Formats for state transition between SYSTEM and GAME:
 
 **GAME_START**:
+- Type1
+- Length
+- Type2
+- Value
 
 **GAME_END**:
+- Type1
+- Length
+- Type2
+- Value
 
 #### 3.1.4 Formats for reliability, diagnostics, and server utilities
 
 **ACK**: acknowledgement of receipt
+- Type1
+- Length
+- Type2
+- Value
 
 **INFO**: general information exchange
+- Type1
+- Length
+- Type2
+- Value
 
 **ERROR**: generic error for protocol violations, malformed 
+- Type1
+- Length
+- Type2
+- Value
 
 ### 3.2 Error Codes  
 
