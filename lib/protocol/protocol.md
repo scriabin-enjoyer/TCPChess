@@ -122,7 +122,7 @@ ECHO_REQ message
 
 **BYE**: Initiated by Client or Server to indicate disconnection
 - Type1 must be 0xFF
-- Length must be in the range 0x01-0xFF
+- Length must be in the range 0x02-0xFF
 - Type2 must be 0x05
 - Value field may contain arbitrary bytes, intended to be read as a UTF8
 encoded string to indicate some message about why the sender closed the
