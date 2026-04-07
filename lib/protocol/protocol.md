@@ -73,8 +73,8 @@ rejected by the server.
 - Exactly 1 byte
 - Indicates the length of the **Type2** field plus the length of the **Value**
 field.
-- The minimum value of this field must be 1
-- The maximum value of this field is 255:  
+- The minimum value of this field must be `0x01`
+- The maximum value of this field is `0xFF`:  
     -> `length(Type2) + length(Value) <= 255`
 
 ### 2.3 Type2 Field
