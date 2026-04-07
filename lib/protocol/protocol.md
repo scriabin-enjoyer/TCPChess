@@ -122,13 +122,14 @@ ECHO_REQ message
 
 **BYE**: Initiated by Client or Server to indicate disconnection
 - Type1 must be `0xFF`
-- Length must be in the range `0x02-0xFF`
+- Length must be in the range `0x01-0xFF`
 - Type2 must be `0x05`
-- Value field may contain arbitrary bytes, intended to be read as a UTF8
-encoded string to indicate some message about why the sender closed the
-connection. Suggested error codes and their meanings will be provided below, at
-the end of section 3 (this section). A sender of this message is not required
-to include this Value field in the message, and it may be omitted.
+- Value field may contain arbitrary bytes, and it may 0-254 bytes long. This
+field is intended to be read as a UTF8 encoded string to indicate some message
+about why the sender closed the connection. Suggested error codes and their
+meanings will be provided below, at the end of section 3 (this section). A
+sender of this message is not required to include this Value field in the
+message, and it may be omitted.
 
 #### 3.1.2 Messages for managing game lobby state:
 
