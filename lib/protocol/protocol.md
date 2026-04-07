@@ -102,7 +102,8 @@ that the server supports.
 - Value must be 12 ASCII encoded bytes representing a UTC timestamp as
 `"HH:MM:SS:sss"` (hour, minute, second, millisecond)
 
-**ECHO_REPLY**: Initiated by Client to respond to ECHO_REQ
+**ECHO_REPLY**: Initiated by Client to respond to ECHO_REQ. Must not be sent
+before receiving an ECHO_REQ from server
 - Type1 must be `0xFF`
 - Length must be `0x0A`
 - Type2 must be `0x02`
@@ -115,22 +116,18 @@ ECHO_REQ message
 - Type2 must be `0x03`
 - Value field must be omitted
 
-**PONG**: Initiated by Client to respond to Server Ping
+**PONG**: Initiated by Client to respond to Server Ping. Must not be sent
+before receiving a PING from server
 - Type1 must be `0xFF`
 - Length must be `0x01`
 - Type2 must be `0x04`
 - Value field must be omitted
 
-**BYE**: Initiated by Client or Server to indicate disconnection
+**BYE**: Initiated by Client or Server to indicate disconnection. May be sent at any time. The Value field is optional and may contain arbitrary bytes intended to be read as an ASCII encoded string.
 - Type1 must be `0xFF`
 - Length must be in the range `0x01-0xFF`
 - Type2 must be `0x05`
-- Value field may contain arbitrary bytes, and it may 0-254 bytes long. This
-field is intended to be read as a UTF8 encoded string to indicate some message
-about why the sender closed the connection. Suggested error codes and their
-meanings will be provided below, at the end of section 3 (this section). A
-sender of this message is not required to include this Value field in the
-message, and it may be omitted.
+- Value field may be omitted or contain up to 254 bytes.
 
 #### 3.1.2 Messages for managing game lobby state:
 
