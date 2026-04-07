@@ -97,10 +97,10 @@ that the server supports.
 
 **ECHO_REQ**: Initiated by Server to measure RTT of a client
 - Type1 must be `0xFF`
-- Length must be `0x0A`
+- Length must be `0x0C`
 - Type2 must be `0x01`
-- Value must be 9 ASCII encoded bytes representing a UTC timestamp as
-`"HHMMSSsss"` (hour, minute, second, millisecond)
+- Value must be 12 ASCII encoded bytes representing a UTC timestamp as
+`"HH:MM:SS:sss"` (hour, minute, second, millisecond)
 
 **ECHO_REPLY**: Initiated by Client to respond to ECHO_REQ
 - Type1 must be `0xFF`
