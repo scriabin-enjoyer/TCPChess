@@ -1,9 +1,5 @@
 # frozen_string_literal: true
 
-require 'socket'
-
-require_relative 'connection'
-
 LOG_FILE = $stdout
 
 def log(type, message)
@@ -14,10 +10,15 @@ def log(type, message)
   end
 end
 
-module TCPChatAppServer
+require 'socket'
+
+require_relative 'connection'
+
+module MyGameServer
   # Implements a single-threaded, event-driven server that maintains a list of
   # active socket connections, waits for read/write events from the sockets,
-  # and delegates these events to appropriate handelrs.
+  # and invokes appropriate callbacks on these connections. The callbacks
+  # should emit events to appropriate handlers.
   class Server
     SERVER_PORT = 2211
     SERVER_HOST = '127.0.0.1'
@@ -81,6 +82,12 @@ module TCPChatAppServer
           client_socket, = @control_socket.accept_nonblock(exception: false)
           break if client_socket == :wait_readable
 
+          # Just reject the connection if server is at maximum capacity
+          if @connection_handles.size >= MAX_CLIENTS
+            client_socket.close
+            next
+          end
+
           # NOTE: Remember to set binmode on the client socket in Connection
           # initialize
           # NOTE: Rememebr to set TCP NODELAY to true on client connection
@@ -106,4 +113,4 @@ module TCPChatAppServer
   end
 end
 
-# TCPChatAppServer::Server.new.run
+# MyGameServer::Server.new.run
