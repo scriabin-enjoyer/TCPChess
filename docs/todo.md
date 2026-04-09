@@ -3,11 +3,11 @@
 Figure out the application protocol. Should specify complete communication
 semantics that supports all features of chess with chat.
 
-NOW:
+ONGOING:
 - [] Implement SYSTEM type message
     - [x] echo req/reply, ping/pong,  bye
     - [x] join game, queued, join success, game disconnect, leave game, gamestart, leavegame
-    - [] ack, info, error
+    - [] ack, info, error (TBD later)
 - [] Implement first draft of a TLV Parser
 
 LATER:
