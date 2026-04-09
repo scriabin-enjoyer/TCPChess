@@ -2,6 +2,8 @@
 
 require 'socket'
 
+require_relative 'connection'
+
 LOG_FILE = $stdout
 
 def log(type, message)
@@ -25,30 +27,45 @@ module TCPChatAppServer
 
     def initialize
       @connection_handles = {}
+      @shutdown = false
 
       trap(:INT) do
-        @connection_handles.each_value(&:close)
-        log :note, "Closed all client connections. Shutting Down."
-        exit
+        @shutdown = true
       end
 
       # Explicitly setup listening socket
-      @control_socket = Socket.new(:INET, :STREAM).then do |sock|
+      @control_socket = Socket.new(:INET, :STREAM).tap do |sock|
+        # reuse the server port if we need to restart the server
+        sock.setsockopt(:SOCKET, :REUSEADDR, true)
+
+        # Max message size is 257 bytes -> MTU usually 1500
+        sock.setsockopt(:IPPROTO_TCP, :NODELAY, true)
+
+        # Setup Server socket
         addr = Socket.pack_sockaddr_in(SERVER_PORT, SERVER_HOST)
         sock.bind addr
         sock.listen(MAX_BACKLOG_SIZE)
-        sock
       end
       log :note, "Listening on port #{SERVER_PORT} on interface #{SERVER_HOST}"
     end
 
     def run
       loop do
+        break if @shutdown
+
         to_read, to_write = io_interested_clients
         readables, writables = IO.select(to_read + [@control_socket], to_write)
         readables.each { |conn| handle_readable(conn) }
         writables.each { |conn| handle_writable(conn) }
       end
+
+      @connection_handles.each_value do |conn|
+        conn.close
+      rescue StandardError
+        next
+      end
+      log :note, "Closed all client connections. Shutting Down."
+      exit
     end
 
     def io_interested_clients
@@ -61,9 +78,12 @@ module TCPChatAppServer
       if connection == @control_socket
         # Process and flush all clients trying to connect
         loop do
-          client_socket, addr = @control_socket.accept_nonblock(exception: false)
+          client_socket, = @control_socket.accept_nonblock(exception: false)
           break if client_socket == :wait_readable
 
+          # NOTE: Remember to set binmode on the client socket in Connection
+          # initialize
+          # NOTE: Rememebr to set TCP NODELAY to true on client connection
           new_connection = Connection.new(client_socket)
           @connection_handles[new_connection.fileno] = new_connection
           new_connection.on_connect
@@ -71,20 +91,19 @@ module TCPChatAppServer
       elsif connection.closed?
         # NOTE: Remember to properly handle cleaning up this connection from
         # the entire server
+        connection.teardown
         @connection_handles.delete(connection.fileno)
       else
         # Main work done here. This callback cascades through the entire server
-        # application
         connection.on_readable
       end
     end
 
     def handle_writable(connection)
       # This should just flush write queue for the connection
-      # NOTE: Remember to deal with partial/blocked writes!
       connection.on_writable
     end
   end
 end
 
-TCPChatAppServer::Server.new.run
+# TCPChatAppServer::Server.new.run
