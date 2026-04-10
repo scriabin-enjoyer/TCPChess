@@ -31,11 +31,11 @@ module MyGameServer
     def parse_tltv(data)
       return if data.bytesize < MIN_MESSAGE_SIZE
 
-      # Get Type1, Length, Type2
+      # Get uint8 values for Type1 field, Length field, Type2 field
       t1, l, t2 = unpack_header(data)
 
-      # Length = length(Type2) + length(Value),
-      # so 2 = length(Type1) + length(Length)
+      # Length field value = bytesize(Type2 field) + bytesize(Value field)
+      # -> bytesize(Type1 field) + bytesize(Length field) = 1 + 1 = 2
       total_size = l + 2
       return if data.bytesize < total_size
 
