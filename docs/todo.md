@@ -27,7 +27,17 @@ this is complete.
     - [x] Shutdown cleanup
     - [x] IO.select loop
     - [x] invoke r/w callbacks
+    - [] Tests:
+        - [] initialize and setup logic
+        - [] io registration (make sure filled r/w buffers are properly added)
+        - [] handle_readable paths
+        - [] shutdown logic
+        - [] Integration tests with real clients
 - [] Implement Parser and Message Generators
+    - [] learn how to set up rake
+    - [] Implement SYSTEM generators
+    - [] implement SYSTEM message parsers
+    - [] tests
 - [] Implement Connection class:
     - [] Interface with Server
     - [] Interface with Event Layer
