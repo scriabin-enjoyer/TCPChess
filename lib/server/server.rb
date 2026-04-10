@@ -41,7 +41,7 @@ module MyGameServer
           sock.setsockopt(:SOCKET, :REUSEADDR, true)
 
           # Max message size is 257 bytes -> MTU usually 1500
-          sock.setsockopt(:IPPROTO_TCP, :NODELAY, true)
+          sock.setsockopt(:TCP, :NODELAY, true)
 
           # Setup Server socket
           addr = Socket.pack_sockaddr_in(SERVER_PORT, SERVER_HOST)
@@ -56,18 +56,15 @@ module MyGameServer
           break if @shutdown
 
           to_read, to_write = io_interested_clients
-          readables, writables = IO.select(to_read + [@control_socket], to_write)
-          readables.each { |conn| handle_readable(conn) }
-          writables.each { |conn| handle_writable(conn) }
+          readables, writables = IO.select(to_read + [@control_socket],
+                                           to_write,
+                                           nil,
+                                           0.1)
+          readables&.each { |conn| handle_readable(conn) }
+          writables&.each { |conn| handle_writable(conn) }
         end
 
-        @connection_handles.each_value do |conn|
-          conn.close
-        rescue StandardError
-          next
-        end
-        log :note, "Closed all client connections. Shutting Down."
-        exit
+        shutdown_server
       end
 
       def io_interested_clients
@@ -110,6 +107,16 @@ module MyGameServer
       def handle_writable(connection)
         # This should just flush write queue for the connection
         connection.on_writable
+      end
+
+      def shutdown_server
+        @connection_handles.each_value do |conn|
+          conn.close
+        rescue StandardError
+          next
+        end
+        log :note, "Closed all client connections. Shutting Down."
+        exit
       end
     end
   end
