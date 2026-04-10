@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'connection'
+
 LOG_FILE = $stdout
 
 def log(type, message)
