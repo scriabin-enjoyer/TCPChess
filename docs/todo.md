@@ -27,14 +27,13 @@ this is complete.
     - [x] Shutdown cleanup
     - [x] IO.select loop
     - [x] invoke r/w callbacks
+- [] Implement Parser and Message Generators
 - [] Implement Connection class:
     - [] Interface with Server
     - [] Interface with Event Layer
     - [] State management
     - [] Connection health, status routines, 
     - [] Figure out keep-alives and timeouts
-- [] Implement Parser and Emitter fully
-        
 
 ## Phase 2: Event Pipeline, Protocol Integration
 
