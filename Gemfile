@@ -9,6 +9,7 @@ gem 'tty-screen'
 
 group :development, :test do
   gem 'minitest'
+  gem 'rake'
   gem 'rubocop'
   gem 'ruby-lsp'
 end
