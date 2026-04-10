@@ -34,7 +34,7 @@ this is complete.
         - [] shutdown logic
         - [] Integration tests with real clients
 - [] Implement Parser and Message Generators
-    - [] learn how to set up rake
+    - [x] learn how to set up rake
     - [] Implement SYSTEM generators
     - [] implement SYSTEM message parsers
     - [] tests
