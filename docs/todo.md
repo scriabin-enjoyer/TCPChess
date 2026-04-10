@@ -8,7 +8,8 @@ ONGOING:
     - [x] echo req/reply, ping/pong,  bye
     - [x] join game, queued, join success, game disconnect, leave game, gamestart, leavegame
     - [] ack, info, error (TBD later)
-- [] Implement first draft of a TLV Parser
+    - [] State transition diagrams
+- [x] Implement first draft of a TLV Parser
 
 LATER:
 - [] Implement GAME type messages (Doesn't need to be complete, just understand
@@ -20,12 +21,12 @@ Implement the main reactor loop and connection logic, without concern for other
 aspects of the entire application. We should have a working echo server once
 this is complete.
 
-- [] Implement Server class (reactor):
-    - [] TCP Server setup
-    - [] Resource allocation, TCP options (remember SOREUSEADDR)
-    - [] Shutdown cleanup
-    - [] IO.select loop
-    - [] invoke r/w callbacks
+- [x] Implement Server class (reactor):
+    - [x] TCP Server setup
+    - [x] Resource allocation, TCP options (remember SOREUSEADDR)
+    - [x] Shutdown cleanup
+    - [x] IO.select loop
+    - [x] invoke r/w callbacks
 - [] Implement Connection class:
     - [] Interface with Server
     - [] Interface with Event Layer
