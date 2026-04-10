@@ -24,7 +24,6 @@ module MyGameServer
       SERVER_PORT = 2211
       SERVER_HOST = '127.0.0.1'
       MAX_BACKLOG_SIZE = 100
-      # TODO: HANDLE MAX CLIENTS
       MAX_CLIENTS = 1000
 
       def initialize
@@ -87,8 +86,7 @@ module MyGameServer
             end
 
             # NOTE: Remember to set binmode on the client socket in Connection
-            # initialize
-            # NOTE: Rememebr to set TCP NODELAY to true on client connection
+            # NOTE: Rememeber to set TCP NODELAY to true on client connection
             new_connection = Connection.new(client_socket)
             @connection_handles[new_connection.fileno] = new_connection
             new_connection.on_connect
@@ -99,7 +97,8 @@ module MyGameServer
           connection.teardown
           @connection_handles.delete(connection.fileno)
         else
-          # Main work done here. This callback cascades through the entire server
+          # Main work done here. This callback cascades through the entire
+          # server
           connection.on_readable
         end
       end
