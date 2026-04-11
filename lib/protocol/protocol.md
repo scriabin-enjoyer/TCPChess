@@ -206,7 +206,7 @@ Client sent.
 - Type1 must be `0x0FF`
 - Length must be `0x02`
 - Type2 must be `0x0D`
-- Value must be a 1 byte value in the range `0x00` - `0xFF`
+- Value must be a 1 byte value in the range `0x00`-`0xFF`
 
 **INFO**: general information exchange
 - Type1 must be `0xFF`
@@ -222,11 +222,75 @@ field is intended to be interpreted as an ASCII encoded byte string.
 - Value must be any value in the range `0x00`-`0xFF`
 
 ### 3.2 Info Codes, Error Codes
+
 ### 3.3 Communication Semantics
 
+Clients are disallowed from sending any Type1 GAME specific messages before
+completing this following sequence:
+
+C:JOIN_GAME, S:QUEUED, S:JOIN_SUCCESS, C:ACK, S:GAME_START
+
+A client may choose to send a LEAVE_GAME message at any point in this sequence,
+indicating that they no longer wish to join a game.
+
+#### 3.3.1 **ECHO_REQ/ECHO_REPLY**
+ECHO_REQ initiated by server, client must respond with an ECHO_REPLY. If a
+client initiates an ECHO_REQ, the server should disconnect the client. If a
+client initiates an ECHO_REPLY without first receiving an ECHO_REQ from the
+server, the server should disconnect the client.
+
+#### 3.3.2 **PING/PONG**
+PING initiated by server, client must respond with an PONG. If a
+client initiates an PING, the server should disconnect the client. If a
+client initiates an PONG without first receiving an PING from the
+server, the server should disconnect the client.
+
+#### 3.3.3 **BYE**
+May be initiated by either the server or the client, at any time. If a server
+receives a BYE from a client, the server should disconnect the client.
+
+#### 3.3.4 **JOIN_GAME, QUEUED, JOIN_SUCCESS**
+JOIN_GAME is initiated by a client. A client must not send a JOIN_GAME if they
+have received any of QUEUED, JOIN_SUCCESS, or GAME_START before they sent a
+LEAVE_GAME or received a GAME_DISCONNECT; in these cases the server should
+disconnect the client.
+
+QUEUED is initiated by the server, only after a client
+has sent a JOIN_GAME message, to inform the client that the server received
+their JOIN_GAME request, and that their request is currently being processed.
+
+JOIN_SUCCESS is initiated by the server once the server has found a game for
+the client to play. Once a client receives a JOIN_SUCCESS, they must reply with
+an ACK containing the Type1 GAME specifier of the game they are trying to join.
+If the server does not receive this ACK within a TBD timeout interval, the
+client should be disconnected from the server. If the client does not correctly
+specify the Type1 GAME identifier, the server should disconnect the client.
+
+#### 3.3.5 **GAME_START, GAME_END**
+GAME_START is initiated by the server after the client has sent an ACK in reply
+to a JOIN_SUCCESS message. Once the server has sent a GAME_START, the client
+may now begin to send Type1 GAME specific messages. The client is free to send
+the following Type1 SYSTEM messages: ECHO_REPLY, PONG, BYE, ACK, INFO, ERROR,
+and LEAVE_GAME. If the client sends a Type1 SYSTEM message with any other Type2
+value, the server should disconnect the client.
+
+GAME_END is initiated by the server to inform the client their game session has
+ended and that they may no longer send Type1 GAME messages.
+
+#### 3.3.6 **GAME_DISCONNECT, LEAVE_GAME**
+
+#### 3.3.7 **ACK**
+
+#### 3.3.8 **INFO**
+
+#### 3.3.9 **ERROR**
+
 ## 4. GAME Layer: Application Plane (Chess)  
+
 ### 4.1 Message Formats  
+
 ### 4.2 Error Codes  
+
 ### 4.3 Communication Semantics  
 
 #### GAME Type
