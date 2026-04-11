@@ -14,6 +14,7 @@ module MyGameServer
 
     # Useful constants
     MIN_MESSAGE_SIZE = 3
+    MAX_MESSAGE_SIZE = 257
     MIN_LENGTH_VALUE = 1
 
     # Custom exceptions
@@ -22,48 +23,59 @@ module MyGameServer
 
     module_function
 
-    # Reads in raw byte string returns hash containing top level type,
-    # corresponding op-code, and the raw binary payload if it exists. Returns
-    # nil if there is not enough structured data to emit a full protocol
-    # message.
+    # Reads data (read buffer) and returns a hash containing the top level
+    # type, the length, and a payload which consists of the raw bytes that
+    # comprise the Type2 and Value fields of the protocol. These fields must be
+    # parsed at a higher level.
     # NOTE: Callers make sure to rescue BadHeader/ProtocolError
     # NOTE: Callers must remember to slice out consumed read buffers themselves
-    def parse_tltv(data)
+    def parse_tlv(data)
       return if data.bytesize < MIN_MESSAGE_SIZE
 
-      # Get uint8 values for Type1 field, Length field, Type2 field
-      t1, l, t2 = unpack_header(data)
+      # Get uint8 values for Type1 field and Length field
+      type, length = unpack_header(data)
 
       # Length field value = bytesize(Type2 field) + bytesize(Value field)
       # -> bytesize(Type1 field) + bytesize(Length field) = 1 + 1 = 2
-      total_size = l + 2
+      total_size = length + 2
       return if data.bytesize < total_size
 
-      v = extract_raw_value(data, l)
+      payload = data.byteslice(2, length)
 
       # Don't unpack the payload here since it will require specific
       # interpretation at a higher level
-      { type1: t1, type2: t2, bytes_read: total_size, raw_value: v }
+      {
+        msg_len: total_size,
+        message: { type: type, length: length, payload: payload }
+      }
+    end
+
+    # expects a hash with the same format as the parse_tltv method generates
+    def serialize_tlv(msg)
+      msg_len, data = msg[:msg_len], msg[:message]
+      type = data[:type]
+      length = data[:length]
+      # this should be a byte string
+      payload = data[:payload]
+      # In a production environment, this shouldn't ever raise, and in fact
+      # this method shouldn't even raise exceptions anywhere
+      raise BadHeader, "Message size too big" if msg_len > MAX_MESSAGE_SIZE
+      raise BadHeader, "Invalid length" if length != payload.bytesize
+
+      [type, length, payload].pack("CCCa*")
     end
 
     def unpack_header(data)
       # Avoid unpack when you can, getbyte() is much more performant
-      t1, l, t2 = data.getbyte(0), data.getbyte(1), data.getbyte(2)
-      raise BadHeader, "0 length message" if l < MIN_LENGTH_VALUE
-      raise BadHeader, "Received Invalid Protocol ID #{t1}" unless valid_protocol?(t1)
+      type, length = data.getbyte(0), data.getbyte(1)
+      raise BadHeader, "0 length message" if length < MIN_LENGTH_VALUE
+      raise BadHeader, "Received Invalid Protocol ID #{type}" unless valid_protocol?(type)
 
-      [t1, l, t2]
+      [type, length]
     end
 
     def valid_protocol?(type)
       type == SYSTEM_T || type == CHESS_T
-    end
-
-    # Extract Value field using l (l = length(t2) + length(value), with
-    # length(t2) always 1 byte)
-    def extract_raw_value(data, length)
-      v_len = length - 1
-      data.byteslice(3, v_len)
     end
   end
 end
