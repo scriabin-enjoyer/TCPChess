@@ -12,8 +12,7 @@
     4.1 Message Formats  
     4.2 Error Codes  
     4.3 Communication Semantics  
-5. Server Lifecycle
-6. Client Lifecycle
+5. Connection Lifecycle
 
 ## 0. Introduction
 This following protocol implements the syntax, semantics, and messaging formats
@@ -59,17 +58,18 @@ fields in bytes
 
 ### 2.1 Type1 Field
 - Exactly 1 byte
+- Representation: unsigned 8-bit integer
 - If the value of this field is `0xFF`, then this indicates a SYSTEM-level
 message.
 - If the MSB of this field is 0, then this field indicates a specific GAME
 type that the server may support. 7 bits allows the protocol to support 128
-different games.
-- The Value `0b00000000` and Values in the range `0b10000000` to `0b11111110`
-are reserved. Clients that transmit a **Type1** header in this range should be
-rejected by the server.
+different games (i.e. 128 different GAME type values).
+- If the value of this field is not `0xFF` or if it is not a supported GAME
+value, then the server should reject the client that sends such a message.
 
 ### 2.2 Length Field
 - Exactly 1 byte
+- Representation: unsigned 8-bit integer
 - Indicates the length of the **Type2** field plus the length of the **Value**
 field.
 - The minimum value of this field must be `0x01`
@@ -78,11 +78,13 @@ field.
 
 ### 2.3 Type2 Field
 - Exactly 1 byte
-- Indicates a SYSTEM-specific or GAME-specific sub-type
+- Representation: unsigned 8-bit integer
+- Indicates a SYSTEM-specific or GAME-specific op-code
 
 ### 2.4 Value Field
 - Variable length, 0-254 bytes
-- Contains payload data relevant to the types of the message
+- Representation: protocol-specific
+- Contains payload data relevant to the **Type2** field of the message
 
 ## 3. SYSTEM: Control Plane  
 
@@ -217,6 +219,7 @@ field is intended to be interpreted as an ASCII encoded byte string.
 - Value must be any value in the range `0x00`-`0xFF`
 
 ### 3.2 Info Codes, Error Codes
+### 3.3 Communication Semantics
 
 ## 4. GAME Layer: Application Plane (Chess)  
 ### 4.1 Message Formats  
@@ -240,8 +243,27 @@ will outline some possible chess-related message types here:
 - CHATMSG_ACK: clients send acknowledgement of receipt of a MSG_RELAY
 - CHATMSG_ERROR: generic error type to indicate errors related to CHAT
 
-## 5. Server Lifecycle
+## 5. Connection Lifecycle
 
 Connection States := IDLE | QUEUED | IN_GAME | CLOSED | UNRESPONSIVE
 
-## 6. Client Lifecycle
+- IDLE means:
+    - A client has recently connected to the server but has not sent any
+    protocol messages
+    - a client was in the QUEUED state or IN_GAME state but was disconnected
+    from the game/matchmaking lobby via GAME_END, GAME_DISCONNECT, or
+    LEAVE_GAME message
+- QUEUED means:
+    - a client was IDLE and then sent a JOIN_GAME message
+- IN_GAME means
+    - a client was QUEUED and then the server found a match for them and sent
+    them a GAME_START message
+- CLOSED means:
+    - a client was in any state and then sent an ill-formed message (one that
+    does not conform to this protocol)
+    - a client was in the UNRESPONSIVE state for longer than a TBD timeout
+    interval
+    - a client was in any other state but was disconnected from the server via
+    BYE message
+- UNRESPONSIVE means:
+    - a client has not sent any data for a TBD timeout interval
