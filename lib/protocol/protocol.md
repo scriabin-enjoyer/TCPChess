@@ -203,7 +203,10 @@ Client sent.
 #### 3.1.3 Formats for reliability, diagnostics, and server utilities
 
 **ACK**: acknowledgement of receipt of a general message
-- Specification TBD
+- Type1 must be `0x0FF`
+- Length must be `0x02`
+- Type2 must be `0x0D`
+- Value must be a 1 byte value in the range `0x00` - `0xFF`
 
 **INFO**: general information exchange
 - Type1 must be `0xFF`
