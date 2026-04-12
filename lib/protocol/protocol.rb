@@ -16,6 +16,7 @@ module MyGameServer
     MIN_MESSAGE_SIZE = 3
     MAX_MESSAGE_SIZE = 257
     MIN_LENGTH_VALUE = 1
+    MAX_VALUE_SIZE = 254
 
     # Custom exceptions
     class ProtocolError < StandardError; end
