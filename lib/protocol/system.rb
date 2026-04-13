@@ -63,55 +63,42 @@ module MyGameServer
       ERROR_T = 0x0F
       ERROR_H = (SYSTEM_T.chr + ERROR_L.chr + ERROR_T.chr).b.freeze
 
-      # Parsing: Event structure
-      # {
-      #   :msg_len => total length of message,
-      #   :message => {
-      #     :type => top level type,
-      #     :length => length field,
-      #     :payload => binary string, (type2, value)
-      #   }
-      # }
-      #
-      # Protocol.parse_tlv validates Type1 field and Length field
-
-      def self.parse(msg)
-        raise NotImplementedError
-      end
-
       module_function
 
-      def generate_echo_req
-        header = "\xFF\x0D\x01".b
-        timestamp = Time.now.strftime("%H:%M:%S:%L").b
-        header + timestamp
+      def generate_message(total_size, payload)
+        {
+          msg_len: total_size,
+          message: {
+            type: SYSTEM_T,
+            length: payload.bytesize,
+            payload: payload
+          }
+        }
+      end
+
+      def generate_echo_req(ts = Time.now.strftime("%H:%M:%S:%L").b)
+        raise NotImplementedError
       end
 
       # argument timestamp should be binary data
       def generate_echo_reply(timestamp)
-        header = "\xFF\x0D\x02".b
-        header + timestamp
+        raise NotImplementedError
       end
 
       def generate_ping
-        "\xFF\x01\x03".b
+        raise NotImplementedError
       end
 
       def generate_pong
-        "\xFF\x01\x04".b
+        raise NotImplementedError
       end
 
       def generate_bye(message)
-        header = "\xFF\x01\x05".b
-        if message.bytesize >= MAX_VALUE_SIZE
-          header + message.byteslice(0, MAX_VALUE_SIZE)
-        else
-          header + message
-        end
+        raise NotImplementedError
       end
 
       def generate_join_game(game_id)
-        header = "\xFF\x02\x06".b
+        raise NotImplementedError
       end
 
       def generate_queued
