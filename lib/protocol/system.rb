@@ -74,20 +74,77 @@ module MyGameServer
       # }
       #
       # Protocol.parse_tlv validates Type1 field and Length field
+
       def self.parse(msg)
         raise NotImplementedError
-        # Check that top-level type is valid (0xFF)
-        #
       end
 
-      # echo req, reply
-      # ping pong
-      # bye
-      # join game, queued, join success
-      # game start
-      # game end
-      # game disconnect
-      # Leave game
+      module_function
+
+      def generate_echo_req
+        header = "\xFF\x0D\x01".b
+        timestamp = Time.now.strftime("%H:%M:%S:%L").b
+        header + timestamp
+      end
+
+      # argument timestamp should be binary data
+      def generate_echo_reply(timestamp)
+        header = "\xFF\x0D\x02".b
+        header + timestamp
+      end
+
+      def generate_ping
+        "\xFF\x01\x03".b
+      end
+
+      def generate_pong
+        "\xFF\x01\x04".b
+      end
+
+      def generate_bye(message)
+        header = "\xFF\x01\x05".b
+        if message.bytesize >= MAX_VALUE_SIZE
+          header + message.byteslice(0, MAX_VALUE_SIZE)
+        else
+          header + message
+        end
+      end
+
+      def generate_join_game(game_id)
+        header = "\xFF\x02\x06".b
+      end
+
+      def generate_queued
+        raise NotImplementedError
+      end
+
+      def generate_join_success
+        raise NotImplementedError
+      end
+
+      def generate_game_start
+        raise NotImplementedError
+      end
+
+      def generate_game_disconnect
+        raise NotImplementedError
+      end
+
+      def generate_leave_game
+        raise NotImplementedError
+      end
+
+      def generate_ack
+        raise NotImplementedError
+      end
+
+      def generate_info
+        raise NotImplementedError
+      end
+
+      def generate_error
+        raise NotImplementedError
+      end
     end
   end
 end
