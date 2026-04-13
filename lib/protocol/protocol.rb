@@ -20,58 +20,57 @@ module MyGameServer
 
     # Custom exceptions
     class ProtocolError < StandardError; end
-    class BadHeader < ProtocolError; end
+    class ProtocolViolation < ProtocolError; end
 
     module_function
 
-    # Reads data (read buffer) and returns a hash containing the top level
-    # type, the length, and a payload which consists of the raw bytes that
-    # comprise the Type2 and Value fields of the protocol. These fields must be
-    # parsed at a higher level.
-    # NOTE: Callers make sure to rescue BadHeader/ProtocolError
-    # NOTE: Callers must remember to slice out consumed read buffers themselves
+    # Event Strucutre:
+    # {
+    #   :type => Type1 field (Integer),
+    #   :length => Length field (Integer),
+    #   :payload => Type2, Value fields (Binary String)
+    # }
+
+    # Receives a binary string (read buffer).
+    # Returns array: first element a hash representing the message data, and
+    # the second element an Integer representing the number of bytes read.
+    # Returns nil if there is not enough data to parse a full length protocol
+    # message.
+    # NOTE: raises ProtocolViolation on 0-length messages
+    # NOTE: raises ProtocolViolation on invalid Type1 field
+    # NOTE: Does not mutate data; callers must remember to slice out consumed
+    # read buffers themselves
     def parse_tlv(data)
       return if data.bytesize < MIN_MESSAGE_SIZE
 
-      # Get uint8 values for Type1 field and Length field
       type, length = unpack_header(data)
-
-      # Length field value = bytesize(Type2 field) + bytesize(Value field)
-      # -> bytesize(Type1 field) + bytesize(Length field) = 1 + 1 = 2
       total_size = length + 2
       return if data.bytesize < total_size
 
       payload = data.byteslice(2, length)
-
-      # Don't unpack the payload here since it will require specific
-      # interpretation at a higher level
-      {
-        msg_len: total_size,
-        message: { type: type, length: length, payload: payload }
-      }
+      [{ type: type, length: length, payload: payload }, total_size]
     end
 
-    # Serializes a hash with the same format as the parse_tltv method generates
-    # into binary string. This method is intended to be used by a Connection
-    # object that has data in its write event queue, which, on_writable, should
-    # serialize the event data and then flush it onto the socket.
-    # NOTE: This raises, so make sure to rescue it in the server loop
+    # Receives event-structured hash { type:, length:, payload: }
+    # Returns a serialized binary string representing the hash.
+    # NOTE: raises ProtocolViolation on invalid message size
     def serialize_tlv(msg)
       data = msg[:message]
       type = data[:type]
       length = data[:length]
       payload = data[:payload]
       bdata = [type, length, payload].pack("CCa*")
-      raise BadHeader, "Invalid message size" unless valid_msg_size?(bdata.bytesize)
+      raise ProtocolViolation, "Invalid message size" unless valid_msg_size?(bdata.bytesize)
 
       bdata
     end
 
+    # Helpers:
+
     def unpack_header(data)
-      # Avoid unpack when you can, getbyte() is much more performant
       type, length = data.getbyte(0), data.getbyte(1)
-      raise BadHeader, "0 length message" if length < MIN_LENGTH_VALUE
-      raise BadHeader, "Received Invalid Protocol ID #{type}" unless valid_protocol?(type)
+      raise ProtocolViolation, "0 length message" if length < MIN_LENGTH_VALUE
+      raise ProtocolViolation, "Received Invalid Protocol ID #{type}" unless valid_protocol?(type)
 
       [type, length]
     end
