@@ -51,19 +51,20 @@ module MyGameServer
       }
     end
 
-    # expects a hash with the same format as the parse_tltv method generates
+    # Serializes a hash with the same format as the parse_tltv method generates
+    # into binary string. This method is intended to be used by a Connection
+    # object that has data in its write event queue, which, on_writable, should
+    # serialize the event data and then flush it onto the socket.
+    # NOTE: This raises, so make sure to rescue it in the server loop
     def serialize_tlv(msg)
-      msg_len, data = msg[:msg_len], msg[:message]
+      data = msg[:message]
       type = data[:type]
       length = data[:length]
-      # this should be a byte string
       payload = data[:payload]
-      # In a production environment, this shouldn't ever raise, and in fact
-      # this method shouldn't even raise exceptions anywhere
-      raise BadHeader, "Message size too big" if msg_len > MAX_MESSAGE_SIZE
-      raise BadHeader, "Invalid length" if length != payload.bytesize
+      bdata = [type, length, payload].pack("CCa*")
+      raise BadHeader, "Invalid message size" unless valid_msg_size?(bdata.bytesize)
 
-      [type, length, payload].pack("CCCa*")
+      bdata
     end
 
     def unpack_header(data)
@@ -77,6 +78,10 @@ module MyGameServer
 
     def valid_protocol?(type)
       type == SYSTEM_T || type == CHESS_T
+    end
+
+    def valid_msg_size?(length)
+      length.between?(MIN_MESSAGE_SIZE, MAX_MESSAGE_SIZE)
     end
   end
 end
