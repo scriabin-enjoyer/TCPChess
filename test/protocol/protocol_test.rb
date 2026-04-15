@@ -1,19 +1,39 @@
 # frozen_string_literal: true
 
-require_relative '../test_protocol_helper'
+require_relative '../protocol_test_helper'
 
-describe MyGameServer::Protocol do
-  describe ".parse_tlv" do
-    describe "when data is good" do
-      it "works" do
+class TestProtocol < Minitest::Test
+  include ProtocolHelper
 
-      end
-    end
+  Protocol = MyGameServer::Protocol
+
+  # generate good data:
+  #   - >= min message size
+  #   - valid type, length
+  #   - sufficient byte size to parse
+  #   - good return values:
+  #     - array if correct and large enough data
+  #     - nil if not enough data
+  #     - nil if not enough data to parse full message
+  #
+  # generate bad data:
+  #   - insufficient data size
+  # Small Messages
+  def test_returns_nil_on_1byte_message
+    bdata = generate_byte
+    result = Protocol.parse_tlv(bdata)
+    assert_nil result
   end
 
-  describe ".serialize_tlv" do
+  def test_returns_on_insufficient_length
+    bdata = generate_2bytes
+    result = Protocol.parse_tlv(bdata)
+    assert_nil result
   end
 
-  describe "helpers" do
+  def test_invalid_type_field
+  end
+
+  def test_invalid_length_field
   end
 end
