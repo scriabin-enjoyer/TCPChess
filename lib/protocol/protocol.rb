@@ -65,7 +65,7 @@ module MyGameServer
       bdata
     end
 
-    private
+    # Helpers
 
     def unpack_header(data)
       type, length = data.getbyte(0), data.getbyte(1)
