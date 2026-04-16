@@ -16,10 +16,11 @@ module ProtocolTests
       binstr
     end
 
-    def random_bytes_with_truncated_payload(n)
-      type1 = rand(0..255).chr.b
-      length = rand(1..255).chr.b
-      type1 + length
+    def generate_message_bytes(type: SYSTEM_T,
+                               length: MIN_LENGTH_VALUE,
+                               payload: [0])
+      payload = payload.map { |byte| byte.chr.b }.join('')
+      type.chr.b + length.chr.b + payload
     end
 
     def invalid_type_message
