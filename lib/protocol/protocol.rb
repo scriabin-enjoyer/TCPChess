@@ -18,18 +18,16 @@ module MyGameServer
     MIN_LENGTH_VALUE = 1
     MAX_VALUE_SIZE = 254
 
+    # Event objects emitted by the parser
+    # payload field represents the trailing "TV" in TLTV, i.e. the application
+    # specific data as a binary encoded string
+    Event = Data.define(:type1, :length, :payload)
+
     # Custom exceptions
     class ProtocolError < StandardError; end
     class ProtocolViolation < ProtocolError; end
 
     module_function
-
-    # Event Strucutre:
-    # {
-    #   :type => Type1 field (Integer),
-    #   :length => Length field (Integer),
-    #   :payload => Type2, Value fields (Binary String)
-    # }
 
     # Receives a binary string (read buffer).
     # Returns array: first element a hash representing the message data, and
@@ -43,23 +41,23 @@ module MyGameServer
     def parse_tlv(data)
       return if data.bytesize < MIN_MESSAGE_SIZE
 
-      type, length = unpack_header(data)
+      type1, length = unpack_header(data)
       total_size = length + 2
       return if data.bytesize < total_size
 
       payload = data.byteslice(2, length)
-      [{ type: type, length: length, payload: payload }, total_size]
+      event = Event.new(type1: type1, length: length, payload: payload)
+      [event, total_size]
     end
 
-    # Receives event-structured hash { type:, length:, payload: }
+    # Receives Protocol::Event object
     # Returns a serialized binary string representing the hash.
     # NOTE: raises ProtocolViolation on invalid message size
-    def serialize_tlv(msg)
-      data = msg[:message]
-      type = data[:type]
-      length = data[:length]
-      payload = data[:payload]
-      bdata = [type, length, payload].pack("CCa*")
+    def serialize_tlv(event)
+      type1 = event.type1
+      length = event.length
+      payload = event.payload
+      bdata = [type1, length, payload].pack("CCa*")
       raise ProtocolViolation, "Invalid message size" unless valid_msg_size?(bdata.bytesize)
 
       bdata

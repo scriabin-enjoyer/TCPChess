@@ -46,7 +46,7 @@ module ProtocolTests
         result = Protocol.parse_tlv(bdata)
         assert result.is_a? Array
         assert result.length == 2
-        assert result.first.is_a? Hash
+        assert result.first.is_a? Protocol::Event
         assert result.last.is_a? Integer
       end
 
@@ -59,13 +59,13 @@ module ProtocolTests
       it "should parse full SYSTEM_T message properly" do
         bdata = generate_message_bytes
         result = Protocol.parse_tlv bdata
-        assert result.first[:type] == SYSTEM_T
+        assert result.first.type1 == SYSTEM_T
       end
 
       it "should parse full CHESS_T message properly" do
         bdata = generate_message_bytes(type: CHESS_T)
         result = Protocol.parse_tlv bdata
-        assert result.first[:type] == CHESS_T
+        assert result.first.type1 == CHESS_T
       end
     end
 
