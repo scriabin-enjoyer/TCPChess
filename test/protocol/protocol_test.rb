@@ -2,38 +2,38 @@
 
 require_relative '../protocol_test_helper'
 
-class TestProtocol < Minitest::Test
-  include ProtocolHelper
-
-  Protocol = MyGameServer::Protocol
-
-  # generate good data:
-  #   - >= min message size
-  #   - valid type, length
-  #   - sufficient byte size to parse
-  #   - good return values:
-  #     - array if correct and large enough data
-  #     - nil if not enough data
-  #     - nil if not enough data to parse full message
-  #
-  # generate bad data:
-  #   - insufficient data size
-  # Small Messages
-  def test_returns_nil_on_1byte_message
-    bdata = generate_byte
-    result = Protocol.parse_tlv(bdata)
-    assert_nil result
+module ProtocolTests
+  class ProtocolSpec < Minitest::Spec
+    include ProtocolHelper
   end
 
-  def test_returns_on_insufficient_length
-    bdata = generate_2bytes
-    result = Protocol.parse_tlv(bdata)
-    assert_nil result
-  end
+  class TestProtocol < ProtocolSpec
+    Protocol = MyGameServer::Protocol
 
-  def test_invalid_type_field
-  end
+    describe ".parse_tlv" do
+      it "should return nil given less than min message byte size" do
+        Protocol::MIN_MESSAGE_SIZE.times do |n|
+          bdata = random_bytes(n)
+          result = Protocol.parse_tlv(bdata)
+          assert_nil result
+        end
+      end
 
-  def test_invalid_length_field
+      it "should return nil given truncated payload" do
+        bdata = random_2bytes_with_valid_length_field
+        result = Protocol.parse_tlv(bdata)
+        assert_nil result
+      end
+
+      it "should raise ProtocolViolation if given invalid type" do
+        bdata = invalid_type_message
+        assert_raises(ProtocolError) { Protocol.parse_tlv(bdata) }
+      end
+
+      it "should raise ProtocolViolation if given invalid length field" do
+        bdata = zerolength_field_message
+        assert_raises(ProtocolViolation) { Protocol.parse_tlv(bdata) }
+      end
+    end
   end
 end
