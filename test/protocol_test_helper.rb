@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'minitest/autorun'
+require 'minitest/pride'
 require_relative '../lib/protocol/main'
 
 module ProtocolTests

@@ -16,5 +16,6 @@ namespace :test do
   Rake::TestTask.new(:protocol) do |t|
     t.libs << "lib" << "test"
     t.test_files = FileList['test/protocol/**/*_test.rb']
+    t.options = "-v --pride"
   end
 end
