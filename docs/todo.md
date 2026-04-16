@@ -35,9 +35,10 @@ this is complete.
         - [] Integration tests with real clients
 - [] Implement Parser and Message Generators
     - [x] learn how to set up rake
-    - [] Implement SYSTEM generators
-    - [] implement SYSTEM message parsers
-    - [] tests
+    - [x] implement parse_tlv and serialize_tlv
+    - [x] setup rake and minitest
+    - [x] write tests for parse_tlv
+    - [] write tests for serialize_tlv
 - [] Implement Connection class:
     - [] Interface with Server
     - [] Interface with Event Layer
