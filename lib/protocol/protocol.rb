@@ -37,11 +37,11 @@ module MyGameServer
       def self.from_wire(data)
         return if data.bytesize < MIN_MESSAGE_SIZE
 
-        type1 = data.getbyte(0)
         length = data.getbyte(1)
         total_size = length + 2
         return if data.bytesize < total_size
 
+        type1 = data.getbyte(0)
         payload = data.byteslice(2, length)
         new(type1: type1, length: length, payload: payload)
       end
