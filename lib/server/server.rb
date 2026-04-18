@@ -85,8 +85,6 @@ module MyGameServer
               next
             end
 
-            # NOTE: Remember to set binmode on the client socket in Connection
-            # NOTE: Rememeber to set TCP NODELAY to true on client connection
             new_connection = Connection.new(client_socket)
             @connection_handles[new_connection.fileno] = new_connection
             new_connection.on_connect
