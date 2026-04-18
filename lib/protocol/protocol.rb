@@ -79,6 +79,14 @@ module MyGameServer
       Event.from_wire(data)
     end
 
+    def test_parse
+      require 'benchmark/ips'
+      data = "\xff\x01\x01".b
+      Benchmark.ips do |ips|
+        ips.report("parse") { parse_tlv data }
+      end
+    end
+
     # Receives Protocol::Event object
     # Returns a serialized binary string representing the hash.
     # NOTE: raises ProtocolViolation on invalid message size
@@ -99,3 +107,5 @@ module MyGameServer
     end
   end
 end
+
+MyGameServer::Protocol.test_parse
