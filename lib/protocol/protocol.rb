@@ -32,9 +32,8 @@ module MyGameServer
     class Event
       attr_reader :type1, :length, :payload, :bytesize
 
-      include Protocol
-
-      # Parses data from wire, Returns instance of self
+      # Parses data from wire, Returns instance of self or nil if not enough
+      # data to parse a full protocol message
       def self.from_wire(data)
         return if data.bytesize < MIN_MESSAGE_SIZE
 
@@ -48,8 +47,8 @@ module MyGameServer
       end
 
       def initialize(type1:, length:, payload:)
-        raise ProtocolViolation, "Invalid Protocol ID: #{type1}" unless valid_protocol?(type1)
-        raise ProtocolViolation, "Invalid length field" unless valid_length_field?(length)
+        raise ProtocolViolation, "Invalid Protocol ID: #{type1}" unless Protocol.valid_protocol?(type1)
+        raise ProtocolViolation, "Invalid length field" unless Protocol.valid_length_field?(length)
         unless length == payload.bytesize
           raise ProtocolViolation, "Length value (#{length}) does not equal payload size (#{payload.bytesize})"
         end
@@ -87,10 +86,7 @@ module MyGameServer
       end
     end
 
-    # Receives Protocol::Event object
-    # Returns a serialized binary string representing the hash.
-    # NOTE: raises ProtocolViolation on invalid message size
-    def serialize_tlv(event)
+    def serialize(event)
       event.to_wire
     end
 
