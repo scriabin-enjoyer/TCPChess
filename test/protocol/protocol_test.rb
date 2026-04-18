@@ -15,14 +15,14 @@ module ProtocolTests
 
       it "should return nil given less than min message byte size" do
         Protocol::MIN_MESSAGE_SIZE.times do |n|
-          bdata = random_bytes(n)
+          bdata = Random.bytes(n)
           result = Protocol.parse_tlv(bdata)
           assert_nil result
         end
       end
 
       it "should return nil given truncated payload" do
-        bdata = generate_message_bytes(length: 3, payload: [1])
+        bdata = truncated_payload
         result = Protocol.parse_tlv(bdata)
         assert_nil result
       end
@@ -35,14 +35,14 @@ module ProtocolTests
       end
 
       it "should raise ProtocolViolation if given invalid length field" do
-        bdata = zerolength_field_message
+        bdata = invalid_length_message
         assert_raises(ProtocolViolation) { Protocol.parse_tlv(bdata) }
       end
 
       # Valid data
 
       it "should parse and return a Protocol::Event object with correct fields" do
-        bdata = generate_message_bytes(type: 255, length: 1, payload: [0])
+        bdata = generate_message_bytes
         result = Protocol.parse_tlv(bdata)
         assert result.is_a? Protocol::Event
         assert result.type1 == 255
@@ -64,7 +64,7 @@ module ProtocolTests
       end
 
       it "should parse full CHESS_T message properly" do
-        bdata = generate_message_bytes(type: CHESS_T)
+        bdata = generate_message_bytes(type1: CHESS_T)
         result = Protocol.parse_tlv bdata
         assert result.type1 == CHESS_T
       end
