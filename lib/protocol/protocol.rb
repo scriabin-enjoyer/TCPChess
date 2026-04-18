@@ -22,15 +22,19 @@ module MyGameServer
     MAX_LENGTH_VALUE = 255
     MAX_VALUE_SIZE = 254
 
-    # Event objects emitted by the parser
+    # Custom exceptions
+    class ProtocolError < StandardError; end
+    class ProtocolViolation < ProtocolError; end
+
+    # Event objects emitted by the parser and EventHandlers
     # payload field represents the trailing "TV" in TLTV, i.e. the application
     # specific data as a binary encoded string
     class Event
-      attr_reader :type1, :length, :payload
+      attr_reader :type1, :length, :payload, :bytesize
 
       include Protocol
 
-      # Parses data from wire
+      # Parses data from wire, Returns instance of self
       def self.from_wire(data)
         return if data.bytesize < MIN_MESSAGE_SIZE
 
@@ -46,14 +50,14 @@ module MyGameServer
       def initialize(type1:, length:, payload:)
         raise ProtocolViolation, "Invalid Protocol ID: #{type1}" unless valid_protocol?(type1)
         raise ProtocolViolation, "Invalid length field" unless valid_length_field?(length)
+        unless length == payload.bytesize
+          raise ProtocolViolation, "Length value (#{length}) does not equal payload size (#{payload.bytesize})"
+        end
 
         @type1 = type1
-        @length = payload.bytesize
+        @length = length
         @payload = payload.freeze
-      end
-
-      def bytesize
-        @payload.bytesize + 2
+        @bytesize = length + 2
       end
 
       def to_wire
@@ -61,15 +65,10 @@ module MyGameServer
       end
     end
 
-    # Custom exceptions
-    class ProtocolError < StandardError; end
-    class ProtocolViolation < ProtocolError; end
-
     module_function
 
     # Receives a binary string (read buffer).
-    # Returns array: first element a hash representing the message data, and
-    # the second element an Integer representing the number of bytes read.
+    # Returns Protocol::Event object
     # Returns nil if there is not enough data to parse a full length protocol
     # message.
     # NOTE: raises ProtocolViolation on 0-length messages
