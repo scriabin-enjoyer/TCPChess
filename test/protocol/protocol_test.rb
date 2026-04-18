@@ -39,6 +39,11 @@ module ProtocolTests
         assert_raises(ProtocolViolation) { Protocol.parse_tlv(bdata) }
       end
 
+      it "should raise ProtocolViolation if length field does not match payload size" do
+        msg_data = { type1: 1, length: 10, payload: "\x0".b * 11 }
+        assert_raises(ProtocolViolation) { Protocol::Event.new(**msg_data) }
+      end
+
       # Valid data
 
       it "should parse and return a Protocol::Event object with correct fields" do
