@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+# Postel's law: “be conservative in what you send, be liberal in what you
+# accept”
+
 module MyGameServer
   # Namespace for all Protocol related features. Game applications that want
   # to add a game to the Server should implement their protocol in this
@@ -16,12 +19,47 @@ module MyGameServer
     MIN_MESSAGE_SIZE = 3
     MAX_MESSAGE_SIZE = 257
     MIN_LENGTH_VALUE = 1
+    MAX_LENGTH_VALUE = 255
     MAX_VALUE_SIZE = 254
 
     # Event objects emitted by the parser
     # payload field represents the trailing "TV" in TLTV, i.e. the application
     # specific data as a binary encoded string
-    Event = Data.define(:type1, :length, :payload)
+    class Event
+      attr_reader :type1, :length, :payload
+
+      include Protocol
+
+      # Parses data from wire
+      def self.from_wire(data)
+        return if data.bytesize < MIN_MESSAGE_SIZE
+
+        type1 = data.getbyte(0)
+        length = data.getbyte(1)
+        total_size = length + 2
+        return if data.bytesize < total_size
+
+        payload = data.byteslice(2, length)
+        new(type1: type1, length: length, payload: payload)
+      end
+
+      def initialize(type1:, length:, payload:)
+        raise ProtocolViolation, "Invalid Protocol ID: #{type1}" unless valid_protocol?(type1)
+        raise ProtocolViolation, "Invalid length field" unless valid_length_field?(length)
+
+        @type1 = type1
+        @length = payload.bytesize
+        @payload = payload.freeze
+      end
+
+      def bytesize
+        @payload.bytesize + 2
+      end
+
+      def to_wire
+        [@type1, @length, @payload].pack("CCa*")
+      end
+    end
 
     # Custom exceptions
     class ProtocolError < StandardError; end
@@ -39,46 +77,26 @@ module MyGameServer
     # NOTE: Does not mutate data; callers must remember to slice out consumed
     # read buffers themselves
     def parse_tlv(data)
-      return if data.bytesize < MIN_MESSAGE_SIZE
-
-      type1, length = unpack_header(data)
-      total_size = length + 2
-      return if data.bytesize < total_size
-
-      payload = data.byteslice(2, length)
-      event = Event.new(type1: type1, length: length, payload: payload)
-      [event, total_size]
+      Event.from_wire(data)
     end
 
     # Receives Protocol::Event object
     # Returns a serialized binary string representing the hash.
     # NOTE: raises ProtocolViolation on invalid message size
     def serialize_tlv(event)
-      type1 = event.type1
-      length = event.length
-      payload = event.payload
-      bdata = [type1, length, payload].pack("CCa*")
-      raise ProtocolViolation, "Invalid message size" unless valid_msg_size?(bdata.bytesize)
-
-      bdata
-    end
-
-    # Helpers
-
-    def unpack_header(data)
-      type, length = data.getbyte(0), data.getbyte(1)
-      raise ProtocolViolation, "0 length message" if length < MIN_LENGTH_VALUE
-      raise ProtocolViolation, "Received Invalid Protocol ID #{type}" unless valid_protocol?(type)
-
-      [type, length]
+      event.to_wire
     end
 
     def valid_protocol?(type)
       type == SYSTEM_T || type == CHESS_T
     end
 
-    def valid_msg_size?(length)
-      length.between?(MIN_MESSAGE_SIZE, MAX_MESSAGE_SIZE)
+    def valid_msg_size?(msg_bytesize)
+      msg_bytesize.between?(MIN_MESSAGE_SIZE, MAX_MESSAGE_SIZE)
+    end
+
+    def valid_length_field?(length)
+      length.between?(MIN_LENGTH_VALUE, MAX_LENGTH_VALUE)
     end
   end
 end

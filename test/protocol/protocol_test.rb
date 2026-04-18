@@ -41,37 +41,32 @@ module ProtocolTests
 
       # Valid data
 
-      it "should parse and return an array with the proper structure" do
-        bdata = generate_message_bytes
+      it "should parse and return a Protocol::Event object with correct fields" do
+        bdata = generate_message_bytes(type: 255, length: 1, payload: [0])
         result = Protocol.parse_tlv(bdata)
-        assert result.is_a? Array
-        assert result.length == 2
-        assert result.first.is_a? Protocol::Event
-        assert result.last.is_a? Integer
+        assert result.is_a? Protocol::Event
+        assert result.type1 == 255
+        assert result.length == 1
+        assert result.payload == "\x00".b
+        assert result.bytesize == 3
       end
 
       it "should return the proper number of bytes read" do
         bdata = generate_message_bytes(length: 10, payload: [1] * 10)
         result = Protocol.parse_tlv(bdata)
-        assert result.last == bdata.length
+        assert result.bytesize == bdata.length
       end
 
       it "should parse full SYSTEM_T message properly" do
         bdata = generate_message_bytes
         result = Protocol.parse_tlv bdata
-        assert result.first.type1 == SYSTEM_T
+        assert result.type1 == SYSTEM_T
       end
 
       it "should parse full CHESS_T message properly" do
         bdata = generate_message_bytes(type: CHESS_T)
         result = Protocol.parse_tlv bdata
-        assert result.first.type1 == CHESS_T
-      end
-    end
-
-    describe ".serialize_tlv" do
-      it "should work" do
-        skip
+        assert result.type1 == CHESS_T
       end
     end
   end

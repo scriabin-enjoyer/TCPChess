@@ -25,7 +25,7 @@ module ProtocolTests
 
     def invalid_type_message
       invalid_type1 = 0xFE.chr.b
-      invalid_type1 + 2.chr.b + 0.chr.b
+      invalid_type1 + MIN_LENGTH_VALUE.chr.b + 0.chr.b
     end
 
     def zerolength_field_message
