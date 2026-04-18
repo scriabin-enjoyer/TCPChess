@@ -107,5 +107,3 @@ module MyGameServer
     end
   end
 end
-
-MyGameServer::Protocol.test_parse
