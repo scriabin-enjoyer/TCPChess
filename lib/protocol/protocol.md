@@ -312,7 +312,7 @@ will outline some possible chess-related message types here:
 
 ## 5. Connection Lifecycle
 
-Connection States := IDLE | QUEUED | IN_GAME | CLOSED | UNRESPONSIVE
+Session States := IDLE | QUEUED | IN_GAME | CLOSED | UNRESPONSIVE
 
 - IDLE means:
     - A client has recently connected to the server but has not sent any

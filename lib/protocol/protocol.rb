@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative '../logger'
+
 # Postel's law: “be conservative in what you send, be liberal in what you
 # accept”
 
@@ -38,8 +40,8 @@ module MyGameServer
         return if data.bytesize < MIN_MESSAGE_SIZE
 
         length = data.getbyte(1)
-        total_size = length + 2
-        return if data.bytesize < total_size
+        total_msg_size = length + 2
+        return if data.bytesize < total_msg_size
 
         type1 = data.getbyte(0)
         payload = data.byteslice(2, length)
@@ -62,6 +64,11 @@ module MyGameServer
       def to_wire
         [@type1, @length, @payload].pack("CCa*")
       end
+
+      def to_s
+        type2, value = @payload[0].to_i, @payload[1..].encode(Encoding::ASCII)
+        "Event data: #{@type1}, #{@length}, #{type2}\nValue: #{value}"
+      end
     end
 
     module_function
@@ -76,6 +83,10 @@ module MyGameServer
     # read buffers themselves
     def parse_tlv(data)
       Event.from_wire(data)
+    end
+
+    def generate_msg(data)
+      SYSTEM_T.chr.b + (data.bytesize + 1).chr.b + "\x00".b + data.b
     end
 
     def test_parse
