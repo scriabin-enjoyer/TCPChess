@@ -6,7 +6,7 @@ def log(type, message)
   if type == :data
     p message
   else
-    LOG_FILE.puts "\n[#{type.upcase}][#{Time.now}] Server: #{message}\n"
+    LOG_FILE.puts "[#{Time.now}][#{type.upcase}]: #{message}\n"
   end
 end
 
@@ -28,39 +28,42 @@ module MyGameServer
 
       def initialize
         @connection_handles = {}
+        @to_close = []
         @shutdown = false
 
         trap(:INT) do
-          @shutdown = true
+          # @shutdown = true
+          shutdown_server
         end
 
-        # Explicitly setup listening socket
         @control_socket = Socket.new(:INET, :STREAM).tap do |sock|
-          # reuse the server port if we need to restart the server
           sock.setsockopt(:SOCKET, :REUSEADDR, true)
-
-          # Max message size is 257 bytes -> MTU usually 1500
           sock.setsockopt(:TCP, :NODELAY, true)
-
-          # Setup Server socket
           addr = Socket.pack_sockaddr_in(SERVER_PORT, SERVER_HOST)
           sock.bind addr
           sock.listen(MAX_BACKLOG_SIZE)
         end
-        log :note, "Listening on port #{SERVER_PORT} on interface #{SERVER_HOST}"
+        log :server, "Listening on port #{SERVER_PORT} on interface #{SERVER_HOST}"
       end
 
       def run
+        oopsies = 0
+        skill_issue = 10
+
         loop do
           break if @shutdown
 
           to_read, to_write = io_interested_clients
-          readables, writables = IO.select(to_read + [@control_socket],
-                                           to_write,
-                                           nil,
-                                           0.1)
+          readables, writables = IO.select(to_read + [@control_socket], to_write, nil, 10)
           readables&.each { |conn| handle_readable(conn) }
           writables&.each { |conn| handle_writable(conn) }
+          remove_dead_conns
+        rescue => e
+          log :server, "Something raised! #{e.class}\n#{e.full_message}"
+          oopsies += 1
+          break if oopsies > skill_issue
+
+          next
         end
 
         shutdown_server
@@ -74,12 +77,10 @@ module MyGameServer
 
       def handle_readable(connection)
         if connection == @control_socket
-          # Process and flush all clients trying to connect
           loop do
             client_socket, = @control_socket.accept_nonblock(exception: false)
             break if client_socket == :wait_readable
 
-            # Just reject the connection if server is at maximum capacity
             if @connection_handles.size >= MAX_CLIENTS
               client_socket.close
               next
@@ -89,21 +90,20 @@ module MyGameServer
             @connection_handles[new_connection.fileno] = new_connection
             new_connection.on_connect
           end
-        elsif connection.closed?
-          # NOTE: Remember to properly handle cleaning up this connection from
-          # the entire server
-          connection.teardown
-          @connection_handles.delete(connection.fileno)
         else
-          # Main work done here. This callback cascades through the entire
-          # server
           connection.on_readable
         end
       end
 
       def handle_writable(connection)
-        # This should just flush write queue for the connection
         connection.on_writable
+      end
+
+      def remove_dead_conns
+        while (dead_conn = @to_close.pop)
+          dead_conn.teardown
+          @connection_handles.delete dead_conn.fileno
+        end
       end
 
       def shutdown_server
@@ -112,7 +112,7 @@ module MyGameServer
         rescue StandardError
           next
         end
-        log :note, "Closed all client connections. Shutting Down."
+        log :server, "Closed all client connections. Shutting Down."
         exit
       end
     end
